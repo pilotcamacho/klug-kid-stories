@@ -1,5 +1,5 @@
 {
-  "name": "klug-kid-stories-tmp",
+  "name": "klug-kid-stories",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,18 +9,26 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-amplify/ui-react": "^6.15.3",
+    "aws-amplify": "^6.16.3",
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@aws-amplify/backend": "^1.22.0",
+    "@aws-amplify/backend-cli": "^1.8.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "aws-cdk-lib": "^2.234.1",
+    "constructs": "^10.6.0",
+    "esbuild": "^0.28.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
