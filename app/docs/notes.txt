@@ -1,1 +1,1 @@
-npx ampx sandbox --identifyer 20260412kks
+npx ampx sandbox --identifier 20260412kks
