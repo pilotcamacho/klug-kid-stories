@@ -175,9 +175,12 @@ Project scaffolding (Next.js + Amplify Gen 2), Cognito authentication (sign up, 
 Admin seeding script (`scripts/seed.ts`) that loads frequency-ordered `WordMeaning` records from `data/seeds/<language-code>/` into DynamoDB. Manual word meaning entry (student-owned `WordMeaning`). Vocabulary browser with CRUD operations for student-owned words. Pre-loaded words appear in the browser as read-only entries the student can choose to start studying.
 
 ### Phase 3 — Proprietary SRS Algorithm Design & Implementation
-Design and implement the proprietary forgetting curve algorithm. Full specification in [`docs/ALGORITHM.md`](docs/ALGORITHM.md).
+Design and implement two independent scoring services:
 
-The algorithm is implemented as a service (`lib/srs.ts`) with a testing script (`scripts/test-srs.ts`).
+- **SRS algorithm** — computes `retentionScore` and `nextReviewAt` from a review event. Full specification in [`docs/ALGORITHM.md`](docs/ALGORITHM.md). Implemented in `lib/srs.ts`.
+- **Answer evaluation** — converts a student's typed response and the expected answer into a `responseScore` [0.0, 1.0] using string similarity. Full specification in [`docs/ANSWER_EVALUATION.md`](docs/ANSWER_EVALUATION.md). Implemented in `lib/similarity.ts`.
+
+Both services are tested via `scripts/test-srs.ts`.
 
 
 
