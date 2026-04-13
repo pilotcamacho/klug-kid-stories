@@ -3,10 +3,12 @@
     "target": "es2022",
     "module": "es2022",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "strict": true
+    "strict": true,
+    "noEmit": true
   },
   "include": ["**/*.ts", "../amplify_outputs.d.ts"]
 }

@@ -42,3 +42,7 @@ next-env.d.ts
 
 # amplify
 amplify_outputs.json
+.amplify/
+
+# claude code
+.claude/
