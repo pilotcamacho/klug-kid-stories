@@ -122,6 +122,7 @@ Each user has per-account settings that control the pace of learning:
 - "Review" counts each individual word meaning presented during a review session, not each story.
 - Settings are stored in a `UserSettings` model (owner-only) and exposed in the `/settings` route.
 - Sensible defaults apply if no record exists yet for a user.
+- **Language filtering:** Review sessions only surface words whose `targetLanguage` matches `UserSettings.targetLanguage`. If no target language is configured, the session blocks with a prompt to visit Settings. Daily review counts are also scoped to the active target language, so switching languages mid-day does not consume another language's quota.
 
 **New word ordering:**
 - Words from the **pre-loaded frequency list** are introduced in ascending frequency rank order (most frequent first).
@@ -233,10 +234,69 @@ Typed-answer review sessions driven by the Phase 3 scheduler and answer evaluati
 - `introducedAt` is set in JS at `UserWordProgress` creation time; session page computes local calendar day boundaries from `new Date()` at load and passes them to `buildSession`.
 - Reviews are shown before new words within a session (reinforce before introducing new load).
 - Midnight recheck uses `location.reload()` — simple and correct for Phase 4; refactor in Phase 5.
+- Words are filtered to `settings.targetLanguage` before `buildSession()` is called. Review event counts are also scoped to that language's word IDs so daily quotas are per-language, not global.
 
 
 ### Phase 5 — Story-Based Review (AI)
-Claude API integration. Story generation constrained to the student's known vocabulary, with target words replaced by blanks. Replaces plain review sessions from Phase 4.
+Claude API integration. Story generation constrained to the student's known vocabulary, with target words replaced by blanks and in parenthesis the word in the sourceLanguage. Leave the plain review sessions from Phase 4 as a secondary way to study the vocabulary. If there is not enough known vocabulary to build the story, write the story in sourceLanguage still leaving the blank to fill out with the targetLanguage.
+
+#### Implementation Checklist
+
+**Step A — Install Anthropic SDK**
+- [x] Run `npm install @anthropic-ai/sdk`
+- [ ] Add `ANTHROPIC_API_KEY` to `.env.local` (dev) and Amplify secrets (prod)
+
+**Step B — Story session utilities (`lib/storySession.ts`)**
+- [x] Export `KNOWN_VOCAB_THRESHOLD` (`minReviewCount: 2`, `minRetentionScore: 3`)
+- [x] Export `MAX_BLANKS_PER_STORY = 5`
+- [x] Export `StoryGroup`, `KnownVocabWord`, `Segment` types
+- [x] Implement `groupSessionItems(items): StoryGroup[]`
+- [x] Implement `buildKnownVocab(allProgress, allWordMeanings): KnownVocabWord[]`
+- [x] Implement `parseStoryBlanks(storyText): Segment[]`
+
+**Step C — Server Action (`app/(app)/review/story/actions.ts`)**
+- [x] Mark file with `'use server'`
+- [x] Implement `generateStory(input): Promise<GenerateStoryOutput>`
+- [x] Instantiate Anthropic client inside function body (never at module scope)
+- [x] Build system prompt and user prompt as specified
+- [x] Validate blank count in response matches `targetWords.length`
+- [x] Return error string on any failure (no throw — caller handles gracefully)
+
+**Step D — Story session page (`app/(app)/review/story/page.tsx`)**
+- [x] State machine: `loading | generating | active | fallback | complete | empty | error | no_settings`
+- [x] Parallel DynamoDB fetch on mount (reuse Phase 4 pattern)
+- [x] Call `buildSession()`, `buildKnownVocab()`, `groupSessionItems()`
+- [x] On generate success: call `client.models.Story.create()` client-side, store `storyId`
+- [x] On generate failure: transition to `fallback`, render Phase 4 cards
+- [x] Track `currentGroupIndex` and `currentBlankIndex` in state
+- [x] On each blank answer: call `submitAnswer()` with `storyContext = storyText`
+- [x] On all blanks answered: generate next group or show `SessionSummary`
+- [x] Midnight recheck on group transition (same `location.reload()` pattern as Phase 4)
+- [x] Show "Switch to word-by-word" link that navigates to `/review`
+
+**Step E — UI Components (`app/(app)/review/story/components/`)**
+- [x] `StoryDisplay.tsx` — inline blanks with per-blank `AnswerInput` and `FeedbackBanner`
+- [x] `StoryGenerating.tsx` — shimmer skeleton + "Generating your story…" text
+
+**Step F — Extend `SessionItem` (`lib/session.ts`)**
+- [x] Add `sourceLanguage: string` to `SessionItem` interface
+- [x] Add `sourceLanguage: string` to `WordMeaningRecord` interface
+- [x] Update word mapping in `app/(app)/review/page.tsx` to include `sourceLanguage`
+
+**Step G — Phase 4 page update (`app/(app)/review/page.tsx`)**
+- [x] Add `sourceLanguage` to word mapping passed to `buildSession()`
+- [x] Add "Try Story Mode" link/button pointing to `/review/story`
+
+#### Key Design Decisions
+- Story generation is on-demand per session group (not pre-generated or cached across sessions).
+- Known vocabulary threshold: `reviewCount >= 2` AND `retentionScore >= 3`. Exposed as `KNOWN_VOCAB_THRESHOLD` in `lib/storySession.ts`.
+- Max 5 blanks per story; session items are chunked into `StoryGroup[]` by `groupSessionItems()`.
+- Blanks answered sequentially left-to-right within a story; each blank calls `submitAnswer()` independently.
+- Non-streaming generation — full story returned before rendering to avoid layout shifts.
+- `Story.create()` is performed client-side (Amplify user pool auth); the Server Action only calls Claude (no Amplify client in server context).
+- On any Claude failure (API error, blank count mismatch, missing key), session falls back to Phase 4 plain-card mode automatically.
+- Phase 4 (`/review`) remains the default NavBar link; Phase 5 (`/review/story`) is opt-in per session with a "Try Story Mode" button.
+- `sourceLanguage` is read from `settings.sourceLanguage` in the story page rather than threading it through `SessionItem`, since all items in a session share the same source language.
 
 ### Phase 6 — Text Import (AI)
 Paste-a-text flow: Claude extracts and lemmatizes vocabulary from the pasted text, disambiguates multiple senses, and presents the student with a review/add word list.

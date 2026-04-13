@@ -5,6 +5,7 @@ import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
 import { buildSession, type BuildSessionOutput, type SessionItem } from '@/lib/session';
 import { submitAnswer, type SubmitAnswerOutput } from '@/lib/progressActions';
+import Link from 'next/link';
 import SessionHeader from './components/SessionHeader';
 import ReviewCard from './components/ReviewCard';
 import EmptySession from './components/EmptySession';
@@ -30,7 +31,7 @@ function getTodayBounds(): { todayStartMs: number; todayEndMs: number; todayStar
 
 // ── Page state ────────────────────────────────────────────────────────────────
 
-type PagePhase = 'loading' | 'empty' | 'active' | 'complete' | 'error';
+type PagePhase = 'loading' | 'no_settings' | 'empty' | 'active' | 'complete' | 'error';
 
 interface CardState {
   input: string;
@@ -95,8 +96,28 @@ export default function ReviewPage() {
 
       const settings = settingsResult.data[0];
 
+      // Guard: require a configured target language before starting a session.
+      if (!settings?.targetLanguage) {
+        setPhase('no_settings');
+        return;
+      }
+
+      const targetLanguage = settings.targetLanguage;
+
+      // Filter vocabulary to the user's configured target language only.
+      const filteredWords = wordMeaningsResult.data.filter(
+        (w) => w.targetLanguage === targetLanguage,
+      );
+
+      // Count today's review events only for words in the target language,
+      // so switching languages mid-day doesn't consume the other language's quota.
+      const filteredWordIds = new Set(filteredWords.map((w) => w.id));
+      const reviewsCompletedToday = reviewEventsResult.data.filter((e) =>
+        filteredWordIds.has(e.wordMeaningId),
+      ).length;
+
       const result = buildSession({
-        allWordMeanings: wordMeaningsResult.data.map((w) => ({
+        allWordMeanings: filteredWords.map((w) => ({
           id: w.id,
           lemma: w.lemma,
           meaning: w.meaning,
@@ -118,9 +139,9 @@ export default function ReviewPage() {
           introducedAt: p.introducedAt,
           createdAt: p.createdAt ?? null,
         })),
-        reviewsCompletedToday: reviewEventsResult.data.length,
-        maxNewWordsPerDay:  settings?.maxNewWordsPerDay  ?? DEFAULT_MAX_NEW,
-        maxReviewsPerDay:   settings?.maxReviewsPerDay   ?? DEFAULT_MAX_REVIEWS,
+        reviewsCompletedToday,
+        maxNewWordsPerDay:  settings.maxNewWordsPerDay  ?? DEFAULT_MAX_NEW,
+        maxReviewsPerDay:   settings.maxReviewsPerDay   ?? DEFAULT_MAX_REVIEWS,
         todayStartMs,
         todayEndMs,
         nowMs: Date.now(),
@@ -203,6 +224,26 @@ export default function ReviewPage() {
     );
   }
 
+  if (phase === 'no_settings') {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Review</h1>
+        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+          <p className="text-lg font-semibold text-gray-900 mb-2">No language configured.</p>
+          <p className="text-sm text-gray-500 mb-6">
+            Set your target language in Settings before starting a review session.
+          </p>
+          <a
+            href="/settings"
+            className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+          >
+            Go to Settings
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   if (phase === 'error') {
     return (
       <div>
@@ -246,7 +287,15 @@ export default function ReviewPage() {
     const item = session.items[currentIndex];
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Review</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Review</h1>
+          <Link
+            href="/review/story"
+            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+          >
+            Try Story Mode →
+          </Link>
+        </div>
         <div className="max-w-xl">
           <SessionHeader
             current={currentIndex + 1}

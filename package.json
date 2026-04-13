@@ -12,6 +12,7 @@
     "test:srs": "tsx scripts/test-srs.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.88.0",
     "@aws-amplify/ui-react": "^6.15.3",
     "aws-amplify": "^6.16.3",
     "next": "16.2.3",

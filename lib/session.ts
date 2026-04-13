@@ -12,6 +12,7 @@ export interface SessionItem {
   lemma: string;
   meaning: string;
   targetLanguage: string;
+  sourceLanguage: string;
   exampleSentence: string | null;
   wordType: WordType;
   /** Present for 'review' items; absent for 'new' words (no progress record yet). */
@@ -136,6 +137,7 @@ export function buildSession(input: BuildSessionInput): BuildSessionOutput {
       lemma: wm.lemma,
       meaning: wm.meaning,
       targetLanguage: wm.targetLanguage,
+      sourceLanguage: wm.sourceLanguage,
       exampleSentence: wm.exampleSentence ?? null,
       wordType: 'review',
       existingProgress: {
@@ -177,6 +179,7 @@ export function buildSession(input: BuildSessionInput): BuildSessionOutput {
       lemma: wm.lemma,
       meaning: wm.meaning,
       targetLanguage: wm.targetLanguage,
+      sourceLanguage: wm.sourceLanguage,
       exampleSentence: wm.exampleSentence ?? null,
       wordType: 'new',
       // existingProgress intentionally absent
