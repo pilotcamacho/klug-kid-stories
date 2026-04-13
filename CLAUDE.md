@@ -99,9 +99,11 @@ Words are never asked in isolation. The system presents the student with a **sho
 ### Word Entry
 
 Students can add vocabulary in three ways:
-1. **Pre-loaded** — vocabulary that has been preloaded, organized by frequency in the language. So that if the student starts from scratch, they will start learning the most used words.
-2. **Manual entry** — the student defines a word meaning directly.
-3. **Text import** — the student pastes a text; the system extracts, lemmatizes, and deduplicates the vocabulary for review and addition.
+1. **Pre-loaded** — A shared pool of `WordMeaning` records seeded into DynamoDB by an admin script, sourced from open frequency corpora (e.g. OpenSubtitles, Wiktionary). These are not owned by any student; they are readable by all authenticated users. Seed data lives as static JSON/CSV files under `data/seeds/<language-code>/` in the repo. A one-time seeding script (`scripts/seed.ts`) loads them into DynamoDB per environment. When a student has no `UserWordProgress` record for a pre-loaded word, it is treated as "not yet started" and the scheduler will introduce it in frequency order.
+2. **Manual entry** — the student defines a word meaning directly, creating a new `WordMeaning` record they own.
+3. **Text import** — the student pastes a text; the system extracts, lemmatizes, and deduplicates the vocabulary, creating new `WordMeaning` records owned by the student.
+
+In all three cases, a `UserWordProgress` record is created the first time the scheduler introduces the word to the student — that moment is what counts as "new word" for daily limit purposes.
 
 ---
 
@@ -170,7 +172,7 @@ AI (Claude API) is used in the following parts of the platform:
 Project scaffolding (Next.js + Amplify Gen 2), Cognito authentication (sign up, sign in, sign out), DynamoDB schema design (users, word meanings, review history), and basic UI shell with navigation.
 
 ### Phase 2 — Vocabulary Management
-Pre-loaded frequency word lists (importable by language), manual word meaning entry, vocabulary browser with CRUD operations.
+Admin seeding script (`scripts/seed.ts`) that loads frequency-ordered `WordMeaning` records from `data/seeds/<language-code>/` into DynamoDB. Manual word meaning entry (student-owned `WordMeaning`). Vocabulary browser with CRUD operations for student-owned words. Pre-loaded words appear in the browser as read-only entries the student can choose to start studying.
 
 ### Phase 3 — Proprietary SRS Algorithm Design & Implementation
 Design and implement the proprietary forgetting curve algorithm. The algorithm must:
