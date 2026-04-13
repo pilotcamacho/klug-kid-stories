@@ -55,7 +55,7 @@ Absent when the word is being reviewed for the first time.
 retentionScore = Math.round(responseScore * COLD_START_MAX_DAYS)
 ```
 
-Example: `responseScore = 0.7` → `Math.round(0.7 * 45)` = `32` days.
+Example: `responseScore = 0.7` → `Math.round(0.7 * 45)` = `31` days. (JavaScript evaluates `0.7 * 45` as `31.4999…` due to floating-point representation.)
 
 **With previous progress:**
 
@@ -140,7 +140,7 @@ All tunable constants are defined in one place in `lib/srs.ts`.
 |---|---|
 | Cold start — perfect | `responseScore=1.0`, no prior progress → `retentionScore=45` |
 | Cold start — zero | `responseScore=0.0`, no prior progress → `retentionScore=1` (min) |
-| Cold start — partial | `responseScore=0.7`, no prior progress → `retentionScore=32` |
+| Cold start — partial | `responseScore=0.7`, no prior progress → `retentionScore=31` |
 | Update — forgotten | `responseScore=0.0`, prior `retentionScore=20` → `retentionScore=10` |
 | Update — perfect | `responseScore=1.0`, prior `retentionScore=20` → `retentionScore=40` |
 | Update — partial | `responseScore=0.5`, prior `retentionScore=20` → `retentionScore=25` |
