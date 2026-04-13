@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
-import { buildSession } from '@/lib/session';
+import { buildSession, type SessionItem } from '@/lib/session';
 import { submitAnswer, type SubmitAnswerOutput } from '@/lib/progressActions';
 import {
   buildKnownVocab,
@@ -55,6 +55,11 @@ interface BlankAnswer {
   result: SubmitAnswerOutput | null;
   submitted: boolean;
   expectedAnswer: string;
+  // Carried from the matched SessionItem so submission uses the right word
+  // regardless of the order Claude placed the blanks in the story.
+  wordMeaningId: string;
+  existingProgress: SessionItem['existingProgress'];
+  wordType: SessionItem['wordType'];
 }
 
 interface ActiveStory {
@@ -95,6 +100,7 @@ export default function StoryReviewPage() {
   // Fallback (Phase 4) state
   const [fallbackIndex, setFallbackIndex]   = useState(0);
   const [fallbackCard, setFallbackCard]     = useState(freshFallbackCard);
+  const [fallbackReason, setFallbackReason] = useState<string | null>(null);
 
   function freshFallbackCard() {
     return { input: '', submitting: false, submitted: false, result: null as SubmitAnswerOutput | null, submitError: null as string | null, questionStartedAt: Date.now() };
@@ -228,8 +234,11 @@ export default function StoryReviewPage() {
       sourceLanguage,
     });
 
+    console.log('[StoryReview] generateStory result:', result);
+
     if (result.error) {
-      // Fall back to Phase 4 plain cards
+      // Fall back to Phase 4 plain cards, preserving the reason for display
+      setFallbackReason(result.error);
       setFallbackIndex(groupIndex * 5);   // approximate start index within session items
       setFallbackCard(freshFallbackCard());
       setPhase('fallback');
@@ -250,12 +259,30 @@ export default function StoryReviewPage() {
     }
 
     const segments = parseStoryBlanks(result.storyText);
-    const answers: BlankAnswer[] = group.items.map((item) => ({
-      value: '',
-      result: null,
-      submitted: false,
-      expectedAnswer: item.lemma,
-    }));
+
+    // Match each blank to the correct SessionItem by comparing the hint
+    // (source-language meaning from the story text) to item.meaning.
+    // Claude may place target words in a different order than we provided them,
+    // so positional mapping would assign the wrong expectedAnswer.
+    const unusedItems = [...group.items];
+    const blankSegments = segments.filter((s): s is Extract<typeof s, { type: 'blank' }> => s.type === 'blank');
+    const answers: BlankAnswer[] = blankSegments.map((seg) => {
+      const matchIdx = unusedItems.findIndex(
+        (item) => item.meaning.toLowerCase().trim() === seg.hint.toLowerCase().trim(),
+      );
+      // Fall back to first unused item if hint matching fails (e.g. Claude paraphrased)
+      const itemIdx = matchIdx !== -1 ? matchIdx : 0;
+      const [item] = unusedItems.splice(itemIdx, 1);
+      return {
+        value: '',
+        result: null,
+        submitted: false,
+        expectedAnswer: item.lemma,
+        wordMeaningId: item.wordMeaningId,
+        existingProgress: item.existingProgress,
+        wordType: item.wordType,
+      };
+    });
 
     setStory({
       storyText: result.storyText,
@@ -277,7 +304,7 @@ export default function StoryReviewPage() {
     if (!story || story.submitting) return;
     if (story.input.trim().length === 0) return;
 
-    const item = story.group.items[story.currentBlankIndex];
+    const answer = story.answers[story.currentBlankIndex];
     const questionStartedAt = Date.now() - 5000; // approximate; inline blanks don't track start time per-blank
 
     setStory((s) => s ? { ...s, submitting: true, submitError: null } : s);
@@ -285,16 +312,16 @@ export default function StoryReviewPage() {
     try {
       const result = await submitAnswer({
         client,
-        wordMeaningId: item.wordMeaningId,
-        expectedAnswer: item.lemma,
+        wordMeaningId: answer.wordMeaningId,
+        expectedAnswer: answer.expectedAnswer,
         studentResponse: story.input.trim(),
         questionStartedAt,
-        existingProgress: item.existingProgress,
+        existingProgress: answer.existingProgress,
         storyContext: story.storyText,
       });
 
       if (result.wasCorrect) setCorrectCount((n) => n + 1);
-      if (item.wordType === 'new') setNewIntroduced((n) => n + 1);
+      if (answer.wordType === 'new') setNewIntroduced((n) => n + 1);
 
       setStory((s) => {
         if (!s) return s;
@@ -502,8 +529,19 @@ export default function StoryReviewPage() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Review</h1>
-          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Word-by-word (story unavailable)</span>
+          <Link href="/review" className="text-sm text-gray-500 hover:text-gray-700">
+            ← Word-by-word mode
+          </Link>
         </div>
+        {fallbackReason && (
+          <div className="max-w-xl mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex gap-3 items-start">
+            <span className="text-amber-500 mt-0.5 shrink-0">⚠</span>
+            <div>
+              <p className="text-sm font-medium text-amber-800">Story generation failed — using word-by-word mode</p>
+              <p className="text-xs text-amber-700 mt-0.5">{fallbackReason}</p>
+            </div>
+          </div>
+        )}
         <div className="max-w-xl">
           <SessionHeader {...getHeaderProps()} />
           <ReviewCard

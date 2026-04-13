@@ -71,9 +71,9 @@ export default function StoryDisplay({
           }
 
           if (isActive) {
-            // Render the inline input for the active blank
+            // Render the inline input for the active blank, keeping the hint visible
             return (
-              <span key={i} className="inline-block align-middle mx-1" style={{ minWidth: '8rem' }}>
+              <span key={i} className="inline-block align-middle mx-1">
                 <AnswerInput
                   value={input}
                   onChange={onInputChange}
@@ -81,6 +81,7 @@ export default function StoryDisplay({
                   disabled={submitting}
                   autoFocus={true}
                 />
+                <span className="text-gray-500 text-sm ml-1">({seg.hint})</span>
               </span>
             );
           }

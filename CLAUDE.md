@@ -244,7 +244,7 @@ Claude API integration. Story generation constrained to the student's known voca
 
 **Step A — Install Anthropic SDK**
 - [x] Run `npm install @anthropic-ai/sdk`
-- [ ] Add `ANTHROPIC_API_KEY` to `.env.local` (dev) and Amplify secrets (prod)
+- [x] Add `ANTHROPIC_API_KEY` to `.env.local` (dev) and Amplify secrets (prod)
 
 **Step B — Story session utilities (`lib/storySession.ts`)**
 - [x] Export `KNOWN_VOCAB_THRESHOLD` (`minReviewCount: 2`, `minRetentionScore: 3`)
