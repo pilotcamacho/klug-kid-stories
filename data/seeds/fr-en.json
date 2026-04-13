@@ -1,0 +1,802 @@
+[
+  {
+    "lemma": "être",
+    "meaning": "to be",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je suis fatigué.",
+    "frequencyRank": 1
+  },
+  {
+    "lemma": "avoir",
+    "meaning": "to have",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'ai un chien.",
+    "frequencyRank": 2
+  },
+  {
+    "lemma": "faire",
+    "meaning": "to do; to make",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il fait du sport chaque matin.",
+    "frequencyRank": 3
+  },
+  {
+    "lemma": "dire",
+    "meaning": "to say; to tell",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle dit toujours la vérité.",
+    "frequencyRank": 4
+  },
+  {
+    "lemma": "aller",
+    "meaning": "to go",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Nous allons au marché.",
+    "frequencyRank": 5
+  },
+  {
+    "lemma": "voir",
+    "meaning": "to see",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je vois la montagne depuis ma fenêtre.",
+    "frequencyRank": 6
+  },
+  {
+    "lemma": "savoir",
+    "meaning": "to know a fact; to know how to",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Tu sais nager ?",
+    "frequencyRank": 7
+  },
+  {
+    "lemma": "pouvoir",
+    "meaning": "to be able to; can",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Pouvez-vous m'aider ?",
+    "frequencyRank": 8
+  },
+  {
+    "lemma": "vouloir",
+    "meaning": "to want",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je veux apprendre le français.",
+    "frequencyRank": 9
+  },
+  {
+    "lemma": "venir",
+    "meaning": "to come",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il vient de Paris.",
+    "frequencyRank": 10
+  },
+  {
+    "lemma": "devoir",
+    "meaning": "to have to; must",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je dois partir tôt demain.",
+    "frequencyRank": 11
+  },
+  {
+    "lemma": "prendre",
+    "meaning": "to take",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Prends ton manteau, il fait froid.",
+    "frequencyRank": 12
+  },
+  {
+    "lemma": "mettre",
+    "meaning": "to put; to place",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle met ses clés sur la table.",
+    "frequencyRank": 13
+  },
+  {
+    "lemma": "trouver",
+    "meaning": "to find",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'ai trouvé mon portefeuille.",
+    "frequencyRank": 14
+  },
+  {
+    "lemma": "donner",
+    "meaning": "to give",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il m'a donné un cadeau.",
+    "frequencyRank": 15
+  },
+  {
+    "lemma": "falloir",
+    "meaning": "to be necessary; must (impersonal)",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il faut manger pour vivre.",
+    "frequencyRank": 16
+  },
+  {
+    "lemma": "parler",
+    "meaning": "to speak; to talk",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle parle trois langues.",
+    "frequencyRank": 17
+  },
+  {
+    "lemma": "penser",
+    "meaning": "to think",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je pense que tu as raison.",
+    "frequencyRank": 18
+  },
+  {
+    "lemma": "croire",
+    "meaning": "to believe; to think",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je crois qu'il pleuvra ce soir.",
+    "frequencyRank": 19
+  },
+  {
+    "lemma": "partir",
+    "meaning": "to leave; to go away",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Le train part à huit heures.",
+    "frequencyRank": 20
+  },
+  {
+    "lemma": "passer",
+    "meaning": "to pass; to spend time",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Nous avons passé une belle journée.",
+    "frequencyRank": 21
+  },
+  {
+    "lemma": "regarder",
+    "meaning": "to look at; to watch",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il regarde la télévision.",
+    "frequencyRank": 22
+  },
+  {
+    "lemma": "demander",
+    "meaning": "to ask; to request",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle lui a demandé son nom.",
+    "frequencyRank": 23
+  },
+  {
+    "lemma": "tenir",
+    "meaning": "to hold; to keep",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il tient la main de sa fille.",
+    "frequencyRank": 24
+  },
+  {
+    "lemma": "entendre",
+    "meaning": "to hear",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'entends de la musique.",
+    "frequencyRank": 25
+  },
+  {
+    "lemma": "comprendre",
+    "meaning": "to understand",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Est-ce que tu comprends la question ?",
+    "frequencyRank": 26
+  },
+  {
+    "lemma": "connaître",
+    "meaning": "to know someone or something",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Tu connais cet homme ?",
+    "frequencyRank": 27
+  },
+  {
+    "lemma": "aimer",
+    "meaning": "to love; to like",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'aime beaucoup le chocolat.",
+    "frequencyRank": 28
+  },
+  {
+    "lemma": "appeler",
+    "meaning": "to call",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je t'appelle ce soir.",
+    "frequencyRank": 29
+  },
+  {
+    "lemma": "sembler",
+    "meaning": "to seem; to appear",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il semble fatigué aujourd'hui.",
+    "frequencyRank": 30
+  },
+  {
+    "lemma": "laisser",
+    "meaning": "to leave; to let",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Laisse-moi tranquille, s'il te plaît.",
+    "frequencyRank": 31
+  },
+  {
+    "lemma": "montrer",
+    "meaning": "to show",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Montre-moi ta photo.",
+    "frequencyRank": 32
+  },
+  {
+    "lemma": "rester",
+    "meaning": "to stay; to remain",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je reste chez moi ce week-end.",
+    "frequencyRank": 33
+  },
+  {
+    "lemma": "arriver",
+    "meaning": "to arrive; to happen",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle arrive à la gare à midi.",
+    "frequencyRank": 34
+  },
+  {
+    "lemma": "vivre",
+    "meaning": "to live",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il vit à Lyon depuis dix ans.",
+    "frequencyRank": 35
+  },
+  {
+    "lemma": "sortir",
+    "meaning": "to go out; to exit",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Nous sortons dîner ce soir.",
+    "frequencyRank": 36
+  },
+  {
+    "lemma": "sentir",
+    "meaning": "to feel; to smell",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je sens une odeur de café.",
+    "frequencyRank": 37
+  },
+  {
+    "lemma": "ouvrir",
+    "meaning": "to open",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ouvre la fenêtre, il fait chaud.",
+    "frequencyRank": 38
+  },
+  {
+    "lemma": "entrer",
+    "meaning": "to enter; to go in",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle entre dans la salle.",
+    "frequencyRank": 39
+  },
+  {
+    "lemma": "commencer",
+    "meaning": "to begin; to start",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Le film commence dans cinq minutes.",
+    "frequencyRank": 40
+  },
+  {
+    "lemma": "finir",
+    "meaning": "to finish; to end",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'ai fini mon travail.",
+    "frequencyRank": 41
+  },
+  {
+    "lemma": "suivre",
+    "meaning": "to follow",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Suis-moi, je connais le chemin.",
+    "frequencyRank": 42
+  },
+  {
+    "lemma": "porter",
+    "meaning": "to carry; to wear",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle porte une robe rouge.",
+    "frequencyRank": 43
+  },
+  {
+    "lemma": "répondre",
+    "meaning": "to answer; to respond",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il n'a pas répondu à ma question.",
+    "frequencyRank": 44
+  },
+  {
+    "lemma": "jouer",
+    "meaning": "to play",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Les enfants jouent dans le jardin.",
+    "frequencyRank": 45
+  },
+  {
+    "lemma": "tomber",
+    "meaning": "to fall",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Les feuilles tombent en automne.",
+    "frequencyRank": 46
+  },
+  {
+    "lemma": "décider",
+    "meaning": "to decide",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Nous avons décidé de partir tôt.",
+    "frequencyRank": 47
+  },
+  {
+    "lemma": "essayer",
+    "meaning": "to try",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Essaie ce plat, il est délicieux.",
+    "frequencyRank": 48
+  },
+  {
+    "lemma": "courir",
+    "meaning": "to run",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle court chaque matin.",
+    "frequencyRank": 49
+  },
+  {
+    "lemma": "recevoir",
+    "meaning": "to receive",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'ai reçu une lettre ce matin.",
+    "frequencyRank": 50
+  },
+  {
+    "lemma": "lire",
+    "meaning": "to read",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'aime lire avant de dormir.",
+    "frequencyRank": 51
+  },
+  {
+    "lemma": "écrire",
+    "meaning": "to write",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle écrit une lettre à sa grand-mère.",
+    "frequencyRank": 52
+  },
+  {
+    "lemma": "perdre",
+    "meaning": "to lose",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'ai perdu mes clés.",
+    "frequencyRank": 53
+  },
+  {
+    "lemma": "revenir",
+    "meaning": "to come back; to return",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je reviens dans une heure.",
+    "frequencyRank": 54
+  },
+  {
+    "lemma": "attendre",
+    "meaning": "to wait; to expect",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'attends le bus depuis vingt minutes.",
+    "frequencyRank": 55
+  },
+  {
+    "lemma": "devenir",
+    "meaning": "to become",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il veut devenir médecin.",
+    "frequencyRank": 56
+  },
+  {
+    "lemma": "changer",
+    "meaning": "to change",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "La ville a beaucoup changé.",
+    "frequencyRank": 57
+  },
+  {
+    "lemma": "homme",
+    "meaning": "man",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Un homme attend devant la porte.",
+    "frequencyRank": 58
+  },
+  {
+    "lemma": "femme",
+    "meaning": "woman; wife",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "La femme porte un chapeau rouge.",
+    "frequencyRank": 59
+  },
+  {
+    "lemma": "enfant",
+    "meaning": "child",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Les enfants jouent dans la cour.",
+    "frequencyRank": 60
+  },
+  {
+    "lemma": "jour",
+    "meaning": "day",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Quel beau jour !",
+    "frequencyRank": 61
+  },
+  {
+    "lemma": "chose",
+    "meaning": "thing",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il y a quelque chose dans ce sac.",
+    "frequencyRank": 62
+  },
+  {
+    "lemma": "main",
+    "meaning": "hand",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle tient un livre dans la main.",
+    "frequencyRank": 63
+  },
+  {
+    "lemma": "vie",
+    "meaning": "life",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "La vie est belle.",
+    "frequencyRank": 64
+  },
+  {
+    "lemma": "monde",
+    "meaning": "world; people",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il y a du monde dans la rue.",
+    "frequencyRank": 65
+  },
+  {
+    "lemma": "an",
+    "meaning": "year",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il a vingt ans.",
+    "frequencyRank": 66
+  },
+  {
+    "lemma": "moment",
+    "meaning": "moment; time",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Attends un moment, s'il te plaît.",
+    "frequencyRank": 67
+  },
+  {
+    "lemma": "temps",
+    "meaning": "time; weather",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Le temps passe vite.",
+    "frequencyRank": 68
+  },
+  {
+    "lemma": "fois",
+    "meaning": "time; occasion",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je l'ai vu trois fois cette semaine.",
+    "frequencyRank": 69
+  },
+  {
+    "lemma": "maison",
+    "meaning": "house; home",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je rentre à la maison.",
+    "frequencyRank": 70
+  },
+  {
+    "lemma": "père",
+    "meaning": "father",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Mon père travaille à Paris.",
+    "frequencyRank": 71
+  },
+  {
+    "lemma": "mère",
+    "meaning": "mother",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Sa mère lui prépare le déjeuner.",
+    "frequencyRank": 72
+  },
+  {
+    "lemma": "ami",
+    "meaning": "friend",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Mon meilleur ami habite à Lyon.",
+    "frequencyRank": 73
+  },
+  {
+    "lemma": "tête",
+    "meaning": "head",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'ai mal à la tête.",
+    "frequencyRank": 74
+  },
+  {
+    "lemma": "œil",
+    "meaning": "eye",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle a les yeux bleus.",
+    "frequencyRank": 75
+  },
+  {
+    "lemma": "cœur",
+    "meaning": "heart",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Son cœur bat vite.",
+    "frequencyRank": 76
+  },
+  {
+    "lemma": "mot",
+    "meaning": "word",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je cherche le bon mot.",
+    "frequencyRank": 77
+  },
+  {
+    "lemma": "pays",
+    "meaning": "country",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "La France est un beau pays.",
+    "frequencyRank": 78
+  },
+  {
+    "lemma": "gens",
+    "meaning": "people",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Les gens parlent fort dans ce café.",
+    "frequencyRank": 79
+  },
+  {
+    "lemma": "nuit",
+    "meaning": "night",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "La nuit, il fait froid.",
+    "frequencyRank": 80
+  },
+  {
+    "lemma": "heure",
+    "meaning": "hour; time of day",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il est quelle heure ?",
+    "frequencyRank": 81
+  },
+  {
+    "lemma": "chemin",
+    "meaning": "path; way; road",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Quel chemin dois-je prendre ?",
+    "frequencyRank": 82
+  },
+  {
+    "lemma": "question",
+    "meaning": "question",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Pose-lui la question directement.",
+    "frequencyRank": 83
+  },
+  {
+    "lemma": "lieu",
+    "meaning": "place",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "C'est un lieu magnifique.",
+    "frequencyRank": 84
+  },
+  {
+    "lemma": "façon",
+    "meaning": "way; manner",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il travaille de façon sérieuse.",
+    "frequencyRank": 85
+  },
+  {
+    "lemma": "voix",
+    "meaning": "voice",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle a une belle voix.",
+    "frequencyRank": 86
+  },
+  {
+    "lemma": "bras",
+    "meaning": "arm",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il a le bras cassé.",
+    "frequencyRank": 87
+  },
+  {
+    "lemma": "grand",
+    "meaning": "big; great; tall",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "C'est une grande ville.",
+    "frequencyRank": 88
+  },
+  {
+    "lemma": "petit",
+    "meaning": "small; little",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Un petit chat dort sur le canapé.",
+    "frequencyRank": 89
+  },
+  {
+    "lemma": "bon",
+    "meaning": "good",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ce gâteau est très bon.",
+    "frequencyRank": 90
+  },
+  {
+    "lemma": "nouveau",
+    "meaning": "new",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "J'ai un nouveau téléphone.",
+    "frequencyRank": 91
+  },
+  {
+    "lemma": "vieux",
+    "meaning": "old",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Cette maison est très vieille.",
+    "frequencyRank": 92
+  },
+  {
+    "lemma": "seul",
+    "meaning": "alone; only",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il vit seul depuis un an.",
+    "frequencyRank": 93
+  },
+  {
+    "lemma": "autre",
+    "meaning": "other; another",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je cherche une autre solution.",
+    "frequencyRank": 94
+  },
+  {
+    "lemma": "bien",
+    "meaning": "well; very well",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il parle très bien anglais.",
+    "frequencyRank": 95
+  },
+  {
+    "lemma": "très",
+    "meaning": "very",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Elle est très intelligente.",
+    "frequencyRank": 96
+  },
+  {
+    "lemma": "encore",
+    "meaning": "again; still; more",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Tu veux encore du café ?",
+    "frequencyRank": 97
+  },
+  {
+    "lemma": "toujours",
+    "meaning": "always; still",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Il est toujours en retard.",
+    "frequencyRank": 98
+  },
+  {
+    "lemma": "jamais",
+    "meaning": "never",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Je ne mens jamais.",
+    "frequencyRank": 99
+  },
+  {
+    "lemma": "même",
+    "meaning": "same; even; itself",
+    "targetLanguage": "fr",
+    "sourceLanguage": "en",
+    "exampleSentence": "Nous avons le même problème.",
+    "frequencyRank": 100
+  }
+]
