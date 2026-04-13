@@ -189,44 +189,44 @@ Typed-answer review sessions driven by the Phase 3 scheduler and answer evaluati
 #### Implementation Checklist
 
 **Step A — Schema**
-- [ ] Add `introducedAt: a.datetime().required()` to `UserWordProgress` in `amplify/data/resource.ts`
-- [ ] Run `npx ampx sandbox` to apply the schema change
+- [x] Add `introducedAt: a.datetime().required()` to `UserWordProgress` in `amplify/data/resource.ts`
+- [x] Run `npx ampx sandbox` to apply the schema change
 
 **Step B — Session Builder (`lib/session.ts`)**
-- [ ] Define `WordType`, `SessionItem`, `BuildSessionInput`, `BuildSessionOutput` types
-- [ ] Implement `buildSession()` pure function:
-  - [ ] Separate progress into `dueForReview` (`nextReviewAt <= now`) and `introducedToday`
-  - [ ] Compute `reviewSlotsLeft` and `newSlotsLeft` from daily limits
-  - [ ] Collect due reviews ordered by `nextReviewAt` ascending (most overdue first)
-  - [ ] Collect new words: pre-loaded by `frequencyRank` first, then user-added by `createdAt`
-  - [ ] Return reviews first, new words after; set `emptyReason` when list is empty
+- [x] Define `WordType`, `SessionItem`, `BuildSessionInput`, `BuildSessionOutput` types
+- [x] Implement `buildSession()` pure function:
+  - [x] Separate progress into `dueForReview` (`nextReviewAt <= now`) and `introducedToday`
+  - [x] Compute `reviewSlotsLeft` and `newSlotsLeft` from daily limits
+  - [x] Collect due reviews ordered by `nextReviewAt` ascending (most overdue first)
+  - [x] Collect new words: pre-loaded by `frequencyRank` first, then user-added by `createdAt`
+  - [x] Return reviews first, new words after; set `emptyReason` when list is empty
 
 **Step C — Progress Actions (`lib/progressActions.ts`)**
-- [ ] Define `SubmitAnswerInput` and `SubmitAnswerOutput` types
-- [ ] Implement `submitAnswer()`:
-  - [ ] Call `evaluateAnswer()` from `lib/similarity.ts` to get `responseScore`
-  - [ ] Call `computeReview()` from `lib/srs.ts` to get new `retentionScore` / `nextReviewAt`
-  - [ ] Fire `ReviewEvent.create()` and `UserWordProgress.create/update()` with `Promise.all`
-  - [ ] Set `CORRECT_THRESHOLD = 0.6` as a named constant
+- [x] Define `SubmitAnswerInput` and `SubmitAnswerOutput` types
+- [x] Implement `submitAnswer()`:
+  - [x] Call `evaluateAnswer()` from `lib/similarity.ts` to get `responseScore`
+  - [x] Call `computeReview()` from `lib/srs.ts` to get new `retentionScore` / `nextReviewAt`
+  - [x] Fire `ReviewEvent.create()` and `UserWordProgress.create/update()` with `Promise.all`
+  - [x] Set `CORRECT_THRESHOLD = 0.6` as a named constant
 
 **Step D — UI Components (`app/(app)/review/components/`)**
-- [ ] `AnswerInput.tsx` — controlled input; Enter submits or advances depending on state
-- [ ] `FeedbackBanner.tsx` — green/yellow/red feedback with correct answer and next review interval
-- [ ] `SessionHeader.tsx` — "Card N of M" progress bar + review/new pills
-- [ ] `ReviewCard.tsx` — composes question, `AnswerInput`, and `FeedbackBanner`; "new word" vs "review" badge
-- [ ] `EmptySession.tsx` — three messages: `daily_limit_reached`, `nothing_due`, `no_vocabulary`
-- [ ] `SessionSummary.tsx` — score, new words introduced, restart and dashboard links
+- [x] `AnswerInput.tsx` — controlled input; Enter submits or advances depending on state
+- [x] `FeedbackBanner.tsx` — green/yellow/red feedback with correct answer and next review interval
+- [x] `SessionHeader.tsx` — "Card N of M" progress bar + review/new pills
+- [x] `ReviewCard.tsx` — composes question, `AnswerInput`, and `FeedbackBanner`; "new word" vs "review" badge
+- [x] `EmptySession.tsx` — three messages: `daily_limit_reached`, `nothing_due`, `no_vocabulary`
+- [x] `SessionSummary.tsx` — score, new words introduced, restart and dashboard links
 
 **Step E — Review Page (`app/(app)/review/page.tsx`)**
-- [ ] Fetch in parallel on mount: `UserSettings`, `UserWordProgress`, `ReviewEvent` (today only), `WordMeaning`
-- [ ] Compute local-timezone today boundaries; call `buildSession()`
-- [ ] Implement session state machine: `loading → active → complete | error`
-- [ ] On answer submit: call `submitAnswer()`, show `FeedbackBanner`, wait for "Next"
-- [ ] On card advance: check for midnight crossing (`Date.now() > todayEndMs`) → `location.reload()`
-- [ ] On `submitAnswer` failure: show inline error with retry; do not advance card
-- [ ] Question format (Phase 4, no stories): *"What is the [language] word for: [meaning]?"* with example sentence blanked as `___` if present
-- [ ] Wire `SessionSummary` when `currentIndex === items.length`
-- [ ] Wire `EmptySession` when `buildSession` returns empty list
+- [x] Fetch in parallel on mount: `UserSettings`, `UserWordProgress`, `ReviewEvent` (today only), `WordMeaning`
+- [x] Compute local-timezone today boundaries; call `buildSession()`
+- [x] Implement session state machine: `loading → active → complete | error`
+- [x] On answer submit: call `submitAnswer()`, show `FeedbackBanner`, wait for "Next"
+- [x] On card advance: check for midnight crossing (`Date.now() > todayEndMs`) → `location.reload()`
+- [x] On `submitAnswer` failure: show inline error with retry; do not advance card
+- [x] Question format (Phase 4, no stories): *"What is the [language] word for: [meaning]?"* with example sentence blanked as `___` if present
+- [x] Wire `SessionSummary` when `currentIndex === items.length`
+- [x] Wire `EmptySession` when `buildSession` returns empty list
 
 #### Key Design Decisions
 - All data access is client-side via `generateClient<Schema>()` — no Server Actions or API routes (consistent with rest of app).

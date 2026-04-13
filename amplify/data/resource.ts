@@ -66,6 +66,12 @@ const schema = a.schema({
       lastReviewedAt: a.datetime(),
       reviewCount: a.integer(),
       correctCount: a.integer(),
+      /**
+       * Timestamp when this word was first introduced to the student.
+       * Set once at UserWordProgress creation; never mutated.
+       * Used to enforce the maxNewWordsPerDay limit in the user's local timezone.
+       */
+      introducedAt: a.datetime().required(),
     })
     .authorization((allow) => [allow.owner()]),
 
