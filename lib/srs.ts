@@ -55,8 +55,14 @@ export function computeReview(input: SRSInput): SRSOutput {
   let retentionScore: number;
 
   if (!input.previousProgress) {
-    // Cold start: proportional to responseScore, max COLD_START_MAX_DAYS
-    retentionScore = Math.round(responseScore * COLD_START_MAX_DAYS);
+    // Cold start — first time this word is answered.
+    // Wrong or weak (< 80%): review tomorrow so the student sees it again quickly.
+    // Correct (≥ 80%): proportional reward up to COLD_START_MAX_DAYS.
+    if (responseScore < 0.8) {
+      retentionScore = 1;
+    } else {
+      retentionScore = Math.round(responseScore * COLD_START_MAX_DAYS);
+    }
   } else {
     // Update: linear interpolation between ×0.5 (score=0) and ×2.0 (score=1)
     const multiplier = 0.5 + 1.5 * responseScore;

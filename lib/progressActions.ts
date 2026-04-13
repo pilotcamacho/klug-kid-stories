@@ -37,6 +37,12 @@ export interface SubmitAnswerInput {
   existingProgress?: ExistingProgress;
   /** Story text shown to the student, if any (empty string for Phase 4). */
   storyContext?: string;
+  /**
+   * The conjugated/declined form of the word as it appeared in the story blank.
+   * When provided, the answer is evaluated against both this form and the lemma
+   * (expectedAnswer), and the higher score is used. Absent in Phase 4.
+   */
+  acceptedConjugatedForm?: string;
 }
 
 export interface SubmitAnswerOutput {
@@ -65,11 +71,17 @@ export async function submitAnswer(input: SubmitAnswerInput): Promise<SubmitAnsw
     questionStartedAt,
     existingProgress,
     storyContext = '',
+    acceptedConjugatedForm,
   } = input;
 
   const responseTimeMs = Date.now() - questionStartedAt;
-  const responseScore  = evaluateAnswer(studentResponse, expectedAnswer);
-  const wasCorrect     = responseScore >= CORRECT_THRESHOLD;
+  // Accept either the lemma or the conjugated/declined story form — use the better score.
+  const scoreVsLemma      = evaluateAnswer(studentResponse, expectedAnswer);
+  const scoreVsConjugated = acceptedConjugatedForm
+    ? evaluateAnswer(studentResponse, acceptedConjugatedForm)
+    : 0;
+  const responseScore = Math.max(scoreVsLemma, scoreVsConjugated);
+  const wasCorrect    = responseScore >= CORRECT_THRESHOLD;
 
   const { retentionScore: newRetentionScore, nextReviewAt } = computeReview({
     initialResponse: { responseScore, responseTimeMs },

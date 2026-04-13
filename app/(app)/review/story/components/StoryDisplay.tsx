@@ -10,6 +10,7 @@ interface BlankAnswer {
   result: SubmitAnswerOutput | null;
   submitted: boolean;
   expectedAnswer: string;
+  conjugatedForm: string;
 }
 
 interface StoryDisplayProps {
@@ -101,6 +102,7 @@ export default function StoryDisplay({
           <FeedbackBanner
             result={currentAnswer.result}
             expectedAnswer={currentAnswer.expectedAnswer}
+            conjugatedForm={currentAnswer.conjugatedForm}
           />
         </div>
       )}

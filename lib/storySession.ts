@@ -28,7 +28,7 @@ export interface KnownVocabWord {
 
 export type Segment =
   | { type: 'text'; content: string }
-  | { type: 'blank'; index: number; hint: string };
+  | { type: 'blank'; index: number; hint: string; conjugatedForm: string };
 
 // --- Functions ---
 
@@ -84,19 +84,19 @@ export function buildKnownVocab(
 /**
  * Parses a generated story text into an array of Segments.
  *
- * The expected blank format is: ___ (hint)
- * where hint is the source-language translation.
+ * The expected blank format is: ___ [conjugated-form] (hint)
+ * where conjugated-form is the inflected target-language word and hint is the source-language translation.
  *
- * Example input:  "Maria ___ (to run) every morning."
+ * Example input:  "Maria ___ [runs] (to run) every morning."
  * Example output: [
  *   { type: 'text', content: 'Maria ' },
- *   { type: 'blank', index: 0, hint: 'to run' },
+ *   { type: 'blank', index: 0, conjugatedForm: 'runs', hint: 'to run' },
  *   { type: 'text', content: ' every morning.' },
  * ]
  */
 export function parseStoryBlanks(storyText: string): Segment[] {
   const segments: Segment[] = [];
-  const BLANK_PATTERN = /___\s*\(([^)]+)\)/g;
+  const BLANK_PATTERN = /___\s*\[([^\]]+)\]\s*\(([^)]+)\)/g;
   let lastIndex = 0;
   let blankIndex = 0;
   let match: RegExpExecArray | null;
@@ -106,7 +106,7 @@ export function parseStoryBlanks(storyText: string): Segment[] {
     if (match.index > lastIndex) {
       segments.push({ type: 'text', content: storyText.slice(lastIndex, match.index) });
     }
-    segments.push({ type: 'blank', index: blankIndex, hint: match[1].trim() });
+    segments.push({ type: 'blank', index: blankIndex, conjugatedForm: match[1].trim(), hint: match[2].trim() });
     blankIndex++;
     lastIndex = match.index + match[0].length;
   }
@@ -124,5 +124,5 @@ export function parseStoryBlanks(storyText: string): Segment[] {
  * Used to validate the Claude response.
  */
 export function countBlanks(storyText: string): number {
-  return (storyText.match(/___\s*\([^)]+\)/g) ?? []).length;
+  return (storyText.match(/___\s*\[[^\]]+\]\s*\([^)]+\)/g) ?? []).length;
 }

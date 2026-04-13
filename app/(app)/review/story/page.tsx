@@ -60,6 +60,8 @@ interface BlankAnswer {
   wordMeaningId: string;
   existingProgress: SessionItem['existingProgress'];
   wordType: SessionItem['wordType'];
+  /** Conjugated/declined form from the story blank; evaluated alongside the lemma. */
+  conjugatedForm: string;
 }
 
 interface ActiveStory {
@@ -281,6 +283,7 @@ export default function StoryReviewPage() {
         wordMeaningId: item.wordMeaningId,
         existingProgress: item.existingProgress,
         wordType: item.wordType,
+        conjugatedForm: seg.conjugatedForm,
       };
     });
 
@@ -318,6 +321,7 @@ export default function StoryReviewPage() {
         questionStartedAt,
         existingProgress: answer.existingProgress,
         storyContext: story.storyText,
+        acceptedConjugatedForm: answer.conjugatedForm,
       });
 
       if (result.wasCorrect) setCorrectCount((n) => n + 1);
