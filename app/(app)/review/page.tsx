@@ -291,9 +291,9 @@ export default function ReviewPage() {
           <h1 className="text-2xl font-bold text-gray-900">Review</h1>
           <Link
             href="/review/story"
-            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            className="text-sm text-gray-500 hover:text-gray-700 font-medium"
           >
-            Try Story Mode →
+            ← Story mode
           </Link>
         </div>
         <div className="max-w-xl">

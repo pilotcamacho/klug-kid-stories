@@ -7,7 +7,7 @@ import { useAuthenticator } from '@aws-amplify/ui-react';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/vocabulary', label: 'Vocabulary' },
-  { href: '/review', label: 'Review' },
+  { href: '/review/story', label: 'Review' },
   { href: '/settings', label: 'Settings' },
 ];
 

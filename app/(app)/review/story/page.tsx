@@ -540,10 +540,16 @@ export default function StoryReviewPage() {
         {fallbackReason && (
           <div className="max-w-xl mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex gap-3 items-start">
             <span className="text-amber-500 mt-0.5 shrink-0">⚠</span>
-            <div>
-              <p className="text-sm font-medium text-amber-800">Story generation failed — using word-by-word mode</p>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-800">Story generation failed — showing word-by-word review</p>
               <p className="text-xs text-amber-700 mt-0.5">{fallbackReason}</p>
             </div>
+            <Link
+              href="/review"
+              className="shrink-0 text-xs font-medium text-amber-800 underline hover:text-amber-900 mt-0.5"
+            >
+              Switch to standard review →
+            </Link>
           </div>
         )}
         <div className="max-w-xl">
