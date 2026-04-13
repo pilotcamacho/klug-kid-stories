@@ -29,12 +29,25 @@ const schema = a.schema({
        * of other users (used for pre-loaded frequency vocabulary).
        */
       isShared: a.boolean(),
+      /**
+       * Frequency rank within the target language corpus (1 = most frequent).
+       * Only set for pre-loaded words; null for manually added words.
+       */
+      frequencyRank: a.integer(),
+      /**
+       * Origin of the word meaning entry.
+       * 'preloaded'    – seeded from a frequency corpus, shared across all users.
+       * 'manual'       – added manually by the student.
+       * 'text_import'  – extracted from a student-pasted text.
+       */
+      sourceType: a.enum(['preloaded', 'manual', 'text_import']),
       userProgress: a.hasMany('UserWordProgress', 'wordMeaningId'),
       reviewEvents: a.hasMany('ReviewEvent', 'wordMeaningId'),
     })
     .authorization((allow) => [
       allow.owner(),
       allow.authenticated().to(['read']),
+      allow.publicApiKey().to(['create', 'read', 'update', 'delete']),
     ]),
 
   // ─── SRS Progress ──────────────────────────────────────────────────────────
@@ -85,6 +98,21 @@ const schema = a.schema({
       targetLanguage: a.string().required(),
     })
     .authorization((allow) => [allow.owner()]),
+
+  // ─── User Settings ─────────────────────────────────────────────────────────
+
+  UserSettings: a
+    .model({
+      /** ISO 639-1 code of the language being learned. e.g. "de", "fr" */
+      targetLanguage: a.string(),
+      /** ISO 639-1 code of the student's native/reference language. e.g. "en" */
+      sourceLanguage: a.string(),
+      /** Maximum new word meanings introduced per calendar day (default: 10) */
+      maxNewWordsPerDay: a.integer(),
+      /** Maximum review items surfaced per calendar day (default: 100) */
+      maxReviewsPerDay: a.integer(),
+    })
+    .authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -93,5 +121,8 @@ export const data = defineData({
   schema,
   authorizationModes: {
     defaultAuthorizationMode: 'userPool',
+    apiKeyAuthorizationMode: {
+      expiresInDays: 365,
+    },
   },
 });

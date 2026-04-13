@@ -1,0 +1,402 @@
+[
+  {
+    "lemma": "sein",
+    "meaning": "to be",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich bin müde.",
+    "frequencyRank": 1
+  },
+  {
+    "lemma": "haben",
+    "meaning": "to have",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich habe einen Hund.",
+    "frequencyRank": 2
+  },
+  {
+    "lemma": "werden",
+    "meaning": "to become",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Er wird Arzt.",
+    "frequencyRank": 3
+  },
+  {
+    "lemma": "können",
+    "meaning": "to be able to; can",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich kann Deutsch sprechen.",
+    "frequencyRank": 4
+  },
+  {
+    "lemma": "müssen",
+    "meaning": "to have to; must",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Du musst schlafen.",
+    "frequencyRank": 5
+  },
+  {
+    "lemma": "sagen",
+    "meaning": "to say",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Was sagst du?",
+    "frequencyRank": 6
+  },
+  {
+    "lemma": "machen",
+    "meaning": "to do; to make",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Was machst du heute?",
+    "frequencyRank": 7
+  },
+  {
+    "lemma": "gehen",
+    "meaning": "to go",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Wir gehen in die Schule.",
+    "frequencyRank": 8
+  },
+  {
+    "lemma": "kommen",
+    "meaning": "to come",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Kommst du morgen?",
+    "frequencyRank": 9
+  },
+  {
+    "lemma": "wollen",
+    "meaning": "to want",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich will Kaffee trinken.",
+    "frequencyRank": 10
+  },
+  {
+    "lemma": "sehen",
+    "meaning": "to see",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich sehe den Mond.",
+    "frequencyRank": 11
+  },
+  {
+    "lemma": "lassen",
+    "meaning": "to let; to leave",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Lass mich in Ruhe.",
+    "frequencyRank": 12
+  },
+  {
+    "lemma": "stehen",
+    "meaning": "to stand",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Er steht vor der Tür.",
+    "frequencyRank": 13
+  },
+  {
+    "lemma": "finden",
+    "meaning": "to find",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich finde meinen Schlüssel nicht.",
+    "frequencyRank": 14
+  },
+  {
+    "lemma": "bleiben",
+    "meaning": "to stay; to remain",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Bitte bleib hier.",
+    "frequencyRank": 15
+  },
+  {
+    "lemma": "liegen",
+    "meaning": "to lie; to be located",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Das Buch liegt auf dem Tisch.",
+    "frequencyRank": 16
+  },
+  {
+    "lemma": "heißen",
+    "meaning": "to be called; to mean",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Wie heißt du?",
+    "frequencyRank": 17
+  },
+  {
+    "lemma": "denken",
+    "meaning": "to think",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich denke an dich.",
+    "frequencyRank": 18
+  },
+  {
+    "lemma": "nehmen",
+    "meaning": "to take",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Nimmst du den Bus?",
+    "frequencyRank": 19
+  },
+  {
+    "lemma": "geben",
+    "meaning": "to give",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Kannst du mir das Buch geben?",
+    "frequencyRank": 20
+  },
+  {
+    "lemma": "wissen",
+    "meaning": "to know (a fact)",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich weiß die Antwort.",
+    "frequencyRank": 21
+  },
+  {
+    "lemma": "sprechen",
+    "meaning": "to speak",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Sprichst du Englisch?",
+    "frequencyRank": 22
+  },
+  {
+    "lemma": "lesen",
+    "meaning": "to read",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich lese jeden Abend.",
+    "frequencyRank": 23
+  },
+  {
+    "lemma": "schreiben",
+    "meaning": "to write",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Sie schreibt einen Brief.",
+    "frequencyRank": 24
+  },
+  {
+    "lemma": "verstehen",
+    "meaning": "to understand",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich verstehe das nicht.",
+    "frequencyRank": 25
+  },
+  {
+    "lemma": "Mann",
+    "meaning": "man; husband",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Der Mann liest die Zeitung.",
+    "frequencyRank": 26
+  },
+  {
+    "lemma": "Frau",
+    "meaning": "woman; wife; Mrs.",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Die Frau arbeitet hier.",
+    "frequencyRank": 27
+  },
+  {
+    "lemma": "Kind",
+    "meaning": "child",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Das Kind spielt im Garten.",
+    "frequencyRank": 28
+  },
+  {
+    "lemma": "Jahr",
+    "meaning": "year",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich lerne seit einem Jahr Deutsch.",
+    "frequencyRank": 29
+  },
+  {
+    "lemma": "Tag",
+    "meaning": "day",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Guten Tag!",
+    "frequencyRank": 30
+  },
+  {
+    "lemma": "Zeit",
+    "meaning": "time",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich habe keine Zeit.",
+    "frequencyRank": 31
+  },
+  {
+    "lemma": "Haus",
+    "meaning": "house; building",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Wir wohnen in einem großen Haus.",
+    "frequencyRank": 32
+  },
+  {
+    "lemma": "Weg",
+    "meaning": "way; path; road",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich kenne den Weg.",
+    "frequencyRank": 33
+  },
+  {
+    "lemma": "Land",
+    "meaning": "country; land",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Deutschland ist ein schönes Land.",
+    "frequencyRank": 34
+  },
+  {
+    "lemma": "Mensch",
+    "meaning": "person; human being",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Er ist ein netter Mensch.",
+    "frequencyRank": 35
+  },
+  {
+    "lemma": "Wort",
+    "meaning": "word",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich kenne dieses Wort nicht.",
+    "frequencyRank": 36
+  },
+  {
+    "lemma": "Hand",
+    "meaning": "hand",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Gib mir deine Hand.",
+    "frequencyRank": 37
+  },
+  {
+    "lemma": "Nacht",
+    "meaning": "night",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Gute Nacht!",
+    "frequencyRank": 38
+  },
+  {
+    "lemma": "Stadt",
+    "meaning": "city; town",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Berlin ist eine große Stadt.",
+    "frequencyRank": 39
+  },
+  {
+    "lemma": "Schule",
+    "meaning": "school",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Die Kinder gehen in die Schule.",
+    "frequencyRank": 40
+  },
+  {
+    "lemma": "Arbeit",
+    "meaning": "work; job",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Die Arbeit macht Spaß.",
+    "frequencyRank": 41
+  },
+  {
+    "lemma": "Leben",
+    "meaning": "life",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Das Leben ist schön.",
+    "frequencyRank": 42
+  },
+  {
+    "lemma": "Wasser",
+    "meaning": "water",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich trinke viel Wasser.",
+    "frequencyRank": 43
+  },
+  {
+    "lemma": "Buch",
+    "meaning": "book",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Das Buch ist sehr interessant.",
+    "frequencyRank": 44
+  },
+  {
+    "lemma": "Tür",
+    "meaning": "door",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Bitte mach die Tür zu.",
+    "frequencyRank": 45
+  },
+  {
+    "lemma": "gut",
+    "meaning": "good; well",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Das schmeckt gut.",
+    "frequencyRank": 46
+  },
+  {
+    "lemma": "groß",
+    "meaning": "big; large; tall",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Er ist sehr groß.",
+    "frequencyRank": 47
+  },
+  {
+    "lemma": "klein",
+    "meaning": "small; little",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Das Kind ist noch klein.",
+    "frequencyRank": 48
+  },
+  {
+    "lemma": "neu",
+    "meaning": "new",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Ich habe ein neues Auto.",
+    "frequencyRank": 49
+  },
+  {
+    "lemma": "alt",
+    "meaning": "old",
+    "targetLanguage": "de",
+    "sourceLanguage": "en",
+    "exampleSentence": "Das Haus ist sehr alt.",
+    "frequencyRank": 50
+  }
+]
