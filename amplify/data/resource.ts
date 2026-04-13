@@ -57,10 +57,10 @@ const schema = a.schema({
       wordMeaningId: a.id().required(),
       wordMeaning: a.belongsTo('WordMeaning', 'wordMeaningId'),
       /**
-       * Estimated retention: value in [0, 1] where 1 = fully retained.
+       * Estimated retention in days: value in [0, ∞).
        * Computed by the proprietary SRS algorithm after each review event.
        */
-      retentionScore: a.float(),
+      retentionScore: a.integer(),
       /** Timestamp when the scheduler will surface this word for review again */
       nextReviewAt: a.datetime().required(),
       lastReviewedAt: a.datetime(),

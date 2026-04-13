@@ -176,12 +176,36 @@ Admin seeding script (`scripts/seed.ts`) that loads frequency-ordered `WordMeani
 
 ### Phase 3 — Proprietary SRS Algorithm Design & Implementation
 Design and implement the proprietary forgetting curve algorithm. The algorithm must:
-- Predict per-student, per-word-meaning forgetting time.
-- Bootstrap from aggregate data across all users (cold start).
+- Predict per-student, per-word-meaning forgetting time in days.
+- Bootstrap from aggregate data across all users (cold start), adhoc tuning of the algorith.
 - Refine predictions continuously from the individual student's recall history.
 - Expose a scheduling interface that returns the next review date for a given word meaning.
-
+  
 This phase is design-first: the algorithm must be specified and validated before implementation begins.
+
+The algorithm should be implemented as a service, and there should be a testing ground for it.
+
+The output of the algorith is: 
+- retentionScore (integer)
+- nextReviewAt (datetime)
+
+as a function of:
+- initial response (first attempt of the day):  
+  - responseScore (float), 
+  - responseTimeMs (integer)
+- and previous (before today) user progress:
+  - retentionScore (integer): previous retentionScore, 
+  - lastReviewedAt (datetime)
+- and today's review history:
+  - reviewCount (integer): number of times attempted today
+  - avgResponseScore (float)
+  - avgResponseTimeMs (integer)
+
+If there is not a previous User progress information: the retentionScore will be based on a proportional value of responseScore as: 0 -> 0 days, 1.0 -> 45 days (if perfect response, the retentdionSocre will be 45)
+
+As an initial algorithm, the retentionScore will be retentionScore / 2 if responseScore = 0 and 2 * retentionScore if responseScore = 1.0. Any responseTimeMs greater than 15000 (15 secons) will reduce the retentionScore by 10% every 10 additional seconds.
+
+
 
 ### Phase 4 — Core Review Sessions
 Typed-answer review sessions driven by the Phase 3 scheduler. Exact-match answer evaluation (no AI yet). Retention score updates after each answer.
