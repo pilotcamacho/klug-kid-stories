@@ -105,6 +105,29 @@ Students can add vocabulary in three ways:
 
 ---
 
+## User Settings
+
+Each user has per-account settings that control the pace of learning:
+
+| Setting | Description | Default |
+|---|---|---|
+| `maxNewWordsPerDay` | Maximum number of new word meanings introduced in a single day. Once reached, the session only shows reviews — no new words. | 10 |
+| `maxReviewsPerDay` | Maximum number of review items surfaced in a single day. Once reached, no further reviews are offered until the next day. | 100 |
+
+**Behavior rules:**
+- Both limits are enforced at session-start time and rechecked if a session spans midnight.
+- "New word" counts any `UserWordProgress` record created for the first time on that calendar day (in the user's local timezone).
+- "Review" counts each individual word meaning presented during a review session, not each story.
+- Settings are stored in a `UserSettings` model (owner-only) and exposed in the `/settings` route.
+- Sensible defaults apply if no record exists yet for a user.
+
+**New word ordering:**
+- Words from the **pre-loaded frequency list** are introduced in ascending frequency rank order (most frequent first).
+- Words added **manually or via text import** are introduced in insertion order (oldest first).
+- When both sources are available, pre-loaded words take priority over user-added words within the same day's new-word slot.
+
+---
+
 ## Data Schema
 
 Defined in `amplify/data/resource.ts` using the Amplify Gen 2 TypeScript schema API.
@@ -115,6 +138,7 @@ Defined in `amplify/data/resource.ts` using the Amplify Gen 2 TypeScript schema 
 | `UserWordProgress` | Per-user SRS state for a word meaning: `retentionScore`, `nextReviewAt`, review counts. Owner-only. |
 | `ReviewEvent` | Immutable log of each review attempt. Used to train/refine the forgetting curve. Owner-only. |
 | `Story` | A generated review story. Stores content (blanks as `___`) and target word meaning IDs. Owner-only. |
+| `UserSettings` | Per-user configuration: `maxNewWordsPerDay`, `maxReviewsPerDay`. Owner-only. One record per user; defaults applied if absent. |
 
 ---
 
