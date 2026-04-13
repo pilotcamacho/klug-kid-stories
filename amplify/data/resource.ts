@@ -76,6 +76,8 @@ const schema = a.schema({
       wordMeaningId: a.id().required(),
       wordMeaning: a.belongsTo('WordMeaning', 'wordMeaningId'),
       wasCorrect: a.boolean().required(),
+      /** Raw similarity score from evaluateAnswer(): [0.0, 1.0] */
+      responseScore: a.float(),
       /** Time the student took to answer, in milliseconds */
       responseTimeMs: a.integer(),
       /**
