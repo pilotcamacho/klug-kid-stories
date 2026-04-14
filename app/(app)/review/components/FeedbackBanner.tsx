@@ -17,20 +17,20 @@ export default function FeedbackBanner({ result, expectedAnswer, conjugatedForm 
   ));
   const reviewLabel = daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
 
-  if (wasCorrect) {
-    return (
-      <div className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm">
-        <p className="font-medium text-green-800">Correct!</p>
-        <p className="text-green-700 mt-0.5">Next review {reviewLabel}.</p>
-      </div>
-    );
-  }
-
   // When a conjugated form is available (story mode), show "conjugated (lemma)".
   // Otherwise just show the lemma (Phase 4 / word-by-word mode).
   const correctDisplay = conjugatedForm
     ? <><span className="font-semibold">{conjugatedForm}</span> <span className="opacity-75">({expectedAnswer})</span></>
     : <span className="font-semibold">{expectedAnswer}</span>;
+
+  if (wasCorrect) {
+    return (
+      <div className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm">
+        <p className="font-medium text-green-800">Correct!</p>
+        <p className="text-green-700 mt-0.5">{correctDisplay} — next review {reviewLabel}.</p>
+      </div>
+    );
+  }
 
   if (responseScore >= 0.3) {
     return (

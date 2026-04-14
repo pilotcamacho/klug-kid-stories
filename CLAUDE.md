@@ -287,7 +287,7 @@ Typed-answer review sessions driven by the Phase 3 scheduler and answer evaluati
 
 ### Phase 5 — Story-Based Review (complete)
 
-Story generation constrained to the student's known vocabulary. Target words appear as blanks in the format `___ [conjugated-form] (source-translation)`. Stories are always written in the target language. If known vocabulary is insufficient (fewer than 15 words), the story is written in the source language with the same blank format. Story complexity scales with the student's vocabulary level. Stories are personalised to the student's age (derived from date of birth), gender, and interests.
+Story generation constrained to the student's known vocabulary. Target words appear as blanks in the format `___ [conjugated-form] (source-translation)`. Stories are **always written in the target language** — even when the allowed vocabulary list is very short; basic grammatical function words fill the gaps. Story complexity scales with the vocabulary level of the target words (simple words → short sentences; advanced words → richer prose). Stories are imaginative and fantastical by design (dragons, time travel, absurd situations) to maximise memorability. Stories are personalised to the student's age (derived from date of birth), gender, and interests.
 
 Plain word-by-word review (Phase 4) remains available at `/review` as a secondary study mode.
 
