@@ -69,6 +69,33 @@ Profile → 20 cached topics → random topic per story:
 - `sourceLanguage` is read from `settings.sourceLanguage` in the page (not threaded through `SessionItem`) since all items in a session share the same source language.
 - `Story.create()` is client-side (Amplify user pool auth); Server Actions have no Amplify client.
 
+## Planned: AI answer evaluation (Phase 7c)
+
+**Status: designed, not yet implemented.**
+
+The goal is to accept valid conjugated/inflected forms that the Levenshtein check rejects — e.g. the student types `laufe` when the story hint shows `[läuft]`.
+
+### Three-tier evaluation
+
+| Tier | Condition | Action |
+|---|---|---|
+| 1 | Local score ≥ 0.8 | Correct — no API call |
+| 2 | Local score = 0.0 (edit cap exceeded) | Wrong — clearly wrong, no API call |
+| 3 | 0.0 < local score < 0.8 | Call Claude Haiku: "Is this a valid form?" |
+
+Tier 3 adds ~500 ms latency only for borderline answers; fast-path answers are unaffected.
+
+### Implementation plan
+
+1. Add `evaluateAnswerAI(input)` server action to `actions.ts` — calls Haiku, returns `{ isAccepted, explanation, error }`.
+2. Add `scoreOverride?: number` to `SubmitAnswerInput` in `lib/progressActions.ts`. When set, it bypasses the internal `evaluateAnswer()` call.
+3. Add `aiNote?: string` to `BlankAnswer` in `story/page.tsx` and `StoryDisplay.tsx`.
+4. Add `aiNote?: string` to `FeedbackBanner` props — shown as an italic green line when the AI accepted a borderline answer (e.g. *"Correct past tense form."*).
+5. In `handleStorySubmit()`: compute local score first; if borderline, call `evaluateAnswerAI()`; if accepted, pass `scoreOverride: 1.0` and the explanation to `submitAnswer()` and `setStory()`.
+6. Also import `evaluateAnswer` from `lib/similarity` and `CORRECT_THRESHOLD` from `lib/progressActions` into `story/page.tsx` for the local pre-check.
+
+This feature is **story mode only** — Phase 4 (word-by-word) always asks for the base lemma form so AI validation is not needed there.
+
 ## AI integration surface (all Claude usage in the app)
 
 | Feature | Location | Model | Notes |

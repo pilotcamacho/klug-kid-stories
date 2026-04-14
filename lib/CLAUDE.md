@@ -41,6 +41,35 @@ The cap exists to prevent short-word false positives (e.g. "far" vs "fais": dist
 - `buildKnownVocab(allProgress, allWordMeanings, excludeIds)` — returns words meeting the known threshold, sorted by retention score descending, excluding current session targets.
 - `parseStoryBlanks(storyText)` — splits story text into `text` and `blank` segments; blanks are in the format `___ [conjugated-form] (source-translation)`.
 
+## Planned: Forgetting curve personalisation (Phase 7b)
+
+**Status: designed, not yet implemented.**
+
+The goal is a **Personal Ease Factor (PEF)** — a per-student scalar derived from `UserWordProgress.reviewCount` / `correctCount` totals, applied as a multiplier to every computed `retentionScore`. No extra DynamoDB query needed; the data is already loaded on session start.
+
+### Algorithm
+
+```
+totalReviews = sum of reviewCount across all UserWordProgress
+totalCorrect = sum of correctCount across all UserWordProgress
+accuracy     = totalCorrect / totalReviews
+
+accuracy ≥ 0.85  →  PEF = lerp(1.0, 1.4)   (strong performer → longer intervals)
+0.65 < accuracy < 0.85  →  PEF = 1.0        (baseline, no adjustment)
+accuracy ≤ 0.65  →  PEF = lerp(0.6, 1.0)   (struggling → shorter intervals)
+Fewer than 30 reviews   →  PEF = 1.0        (not enough data, no adjustment)
+```
+
+### Implementation plan
+
+1. Add `personalEaseFactor?: number` to `SRSInput` in `srs.ts`.
+2. Apply it in `computeReview()` after the response-time penalty, before the minimum clamp.
+3. Add `computePersonalEaseFactor(allProgress)` helper to `srs.ts`.
+4. Add `personalEaseFactor?: number` to `SubmitAnswerInput` in `progressActions.ts`; pass it to `computeReview()`.
+5. In both review pages (`review/page.tsx` and `review/story/page.tsx`), compute PEF from the already-loaded `UserWordProgress` data and pass it to every `submitAnswer()` call.
+
+The feature is invisible to the student (no UI changes needed).
+
 ## Auth retry (`authRetry.ts`)
 
 `withAuthRetry(fn)` wraps any async DynamoDB call. On an Amplify auth error it calls `fetchAuthSession()` to force a token refresh, then retries `fn` once. Used on all data-fetching pages to silently recover from the Amplify v6 token-refresh race condition that surfaces as "no current user" on page navigation.

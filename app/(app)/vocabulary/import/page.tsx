@@ -8,6 +8,7 @@ import { languageName } from '@/app/lib/languages';
 import { withAuthRetry } from '@/lib/authRetry';
 import { extractVocabulary } from './actions';
 import type { ExtractedWord } from './actions';
+import { suggestDefinition } from '../actions';
 
 const client = generateClient<Schema>();
 
@@ -23,6 +24,7 @@ interface ReviewRow {
   pos: ExtractedWord['pos'];
   status: WordStatus;
   checked: boolean;
+  exampleSentence: string;
 }
 
 // ─── Styling helpers ──────────────────────────────────────────────────────────
@@ -64,6 +66,9 @@ export default function ImportPage() {
   // Done step
   const [addedCount, setAddedCount] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Example sentence suggestion
+  const [suggestingExamples, setSuggestingExamples] = useState(false);
 
   // Load language defaults from UserSettings
   useEffect(() => {
@@ -129,6 +134,7 @@ export default function ImportPage() {
         pos: w.pos,
         status,
         checked: status === 'new',
+        exampleSentence: '',
       };
     });
 
@@ -144,6 +150,35 @@ export default function ImportPage() {
 
   function updateMeaning(index: number, value: string) {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, meaning: value } : r)));
+  }
+
+  function updateExampleSentence(index: number, value: string) {
+    setRows((prev) => prev.map((r, i) => (i === index ? { ...r, exampleSentence: value } : r)));
+  }
+
+  async function handleSuggestExamples() {
+    const targets = rows
+      .map((r, i) => ({ row: r, index: i }))
+      .filter(({ row }) => row.checked && row.status === 'new');
+    if (targets.length === 0) return;
+
+    setSuggestingExamples(true);
+    const results = await Promise.all(
+      targets.map(({ row }) =>
+        suggestDefinition({ lemma: row.lemma, targetLanguage, sourceLanguage }),
+      ),
+    );
+    setRows((prev) => {
+      const next = [...prev];
+      targets.forEach(({ index }, i) => {
+        const suggestion = results[i];
+        if (!suggestion.error && suggestion.exampleSentence) {
+          next[index] = { ...next[index], exampleSentence: suggestion.exampleSentence };
+        }
+      });
+      return next;
+    });
+    setSuggestingExamples(false);
   }
 
   function toggleAll(checked: boolean) {
@@ -171,6 +206,7 @@ export default function ImportPage() {
             sourceLanguage,
             isShared: false,
             sourceType: 'text_import',
+            exampleSentence: r.exampleSentence.trim() || undefined,
           }),
         ),
       );
@@ -268,7 +304,15 @@ export default function ImportPage() {
                 </span>
               )}
             </p>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              <button
+                onClick={handleSuggestExamples}
+                disabled={suggestingExamples || selectedCount === 0}
+                className="text-indigo-600 hover:text-indigo-800 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {suggestingExamples ? 'Suggesting…' : '✦ Suggest example sentences'}
+              </button>
+              <span>·</span>
               <button
                 onClick={() => toggleAll(true)}
                 className="hover:text-indigo-600 transition-colors"
@@ -325,12 +369,22 @@ export default function ImportPage() {
                       </td>
                       <td className="px-4 py-3">
                         {isNew ? (
-                          <input
-                            type="text"
-                            value={row.meaning}
-                            onChange={(e) => updateMeaning(i, e.target.value)}
-                            className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                          />
+                          <div className="space-y-1.5">
+                            <input
+                              type="text"
+                              value={row.meaning}
+                              onChange={(e) => updateMeaning(i, e.target.value)}
+                              className="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              placeholder="meaning"
+                            />
+                            <input
+                              type="text"
+                              value={row.exampleSentence}
+                              onChange={(e) => updateExampleSentence(i, e.target.value)}
+                              className="w-full border border-gray-100 rounded px-2 py-1 text-xs text-gray-500 italic focus:outline-none focus:ring-1 focus:ring-indigo-400 placeholder-gray-300"
+                              placeholder="example sentence (optional)"
+                            />
+                          </div>
                         ) : (
                           <span className="text-gray-500">{row.meaning}</span>
                         )}

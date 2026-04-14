@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { suggestDefinition } from './actions';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
 import { LANGUAGES, languageName } from '@/app/lib/languages';
@@ -61,9 +62,13 @@ function Modal({
 function WordFormFields({
   form,
   onChange,
+  onSuggest,
+  suggesting,
 }: {
   form: WordForm;
   onChange: (f: WordForm) => void;
+  onSuggest?: () => void;
+  suggesting?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -135,6 +140,16 @@ function WordFormFields({
           placeholder="e.g. Ich laufe jeden Morgen."
         />
       </div>
+      {onSuggest && (
+        <button
+          type="button"
+          onClick={onSuggest}
+          disabled={!form.lemma.trim() || suggesting}
+          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {suggesting ? 'Suggesting…' : '✦ Suggest meaning & example sentence'}
+        </button>
+      )}
     </div>
   );
 }
@@ -162,6 +177,9 @@ export default function VocabularyPage() {
   const [form, setForm] = useState<WordForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Suggest state
+  const [suggesting, setSuggesting] = useState(false);
 
   // Delete state
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -235,6 +253,24 @@ export default function VocabularyPage() {
   function closeModal() {
     setShowAddModal(false);
     setEditingWord(null);
+  }
+
+  async function handleSuggest() {
+    if (!form.lemma.trim()) return;
+    setSuggesting(true);
+    const result = await suggestDefinition({
+      lemma: form.lemma.trim(),
+      targetLanguage: form.targetLanguage,
+      sourceLanguage: form.sourceLanguage,
+    });
+    if (!result.error) {
+      setForm((f) => ({
+        ...f,
+        meaning: result.meaning || f.meaning,
+        exampleSentence: result.exampleSentence || f.exampleSentence,
+      }));
+    }
+    setSuggesting(false);
   }
 
   async function handleSave() {
@@ -455,7 +491,7 @@ export default function VocabularyPage() {
       {/* Add word modal */}
       {showAddModal && (
         <Modal title="Add New Word" onClose={closeModal}>
-          <WordFormFields form={form} onChange={setForm} />
+          <WordFormFields form={form} onChange={setForm} onSuggest={handleSuggest} suggesting={suggesting} />
           {saveError && (
             <p className="mt-3 text-xs text-red-500">{saveError}</p>
           )}
@@ -480,7 +516,7 @@ export default function VocabularyPage() {
       {/* Edit word modal */}
       {editingWord && (
         <Modal title="Edit Word" onClose={closeModal}>
-          <WordFormFields form={form} onChange={setForm} />
+          <WordFormFields form={form} onChange={setForm} onSuggest={handleSuggest} suggesting={suggesting} />
           {saveError && (
             <p className="mt-3 text-xs text-red-500">{saveError}</p>
           )}

@@ -139,5 +139,7 @@ In all three cases, a `UserWordProgress` record is created the first time the sc
 | 4 — Core Review Sessions | complete | Typed-answer review at `/review`; see `app/(app)/review/CLAUDE.md` |
 | 5 — Story-Based Review | complete | Story generation at `/review/story`; see `app/(app)/review/story/CLAUDE.md` |
 | 6 — Text Import | complete | Paste-a-text → Claude extracts + lemmatizes vocabulary; see `app/(app)/vocabulary/import/CLAUDE.md` |
-| 7 — AI-Enhanced Evaluation & Definitions | planned | Claude answer evaluation, word definitions, forgetting curve personalization |
+| 7a — Word definition suggestions | complete | "Suggest" button on manual add/edit form + import page; see `app/(app)/vocabulary/CLAUDE.md` |
+| 7b — Forgetting curve personalisation | planned | Personal ease factor from review history; see `lib/CLAUDE.md` |
+| 7c — AI answer evaluation | planned | Accept valid conjugations in story mode; see `app/(app)/review/story/CLAUDE.md` |
 | 8 — Analytics & Polish | planned | Progress dashboard, mobile responsiveness, performance tuning |
