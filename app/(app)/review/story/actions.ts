@@ -5,12 +5,21 @@ import { languageName } from '@/app/lib/languages';
 import { countBlanks } from '@/lib/storySession';
 import type { KnownVocabWord } from '@/lib/storySession';
 
-// --- Types ---
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface UserProfile {
   age?: number;
   gender?: string;
   interests?: string;
+}
+
+export interface GenerateTopicsInput {
+  userProfile: UserProfile;
+}
+
+export interface GenerateTopicsOutput {
+  topics: string[];
+  error: string | null;
 }
 
 export interface GenerateStoryInput {
@@ -22,6 +31,9 @@ export interface GenerateStoryInput {
   knownVocab: KnownVocabWord[];
   targetLanguage: string;   // ISO 639-1, e.g. "de"
   sourceLanguage: string;   // ISO 639-1, e.g. "en"
+  /** One topic drawn at random from the user's ProfileTopics list. */
+  storyTopic?: string;
+  /** Soft hints only — topic drives the theme; profile drives complexity + character. */
   userProfile?: UserProfile;
 }
 
@@ -31,9 +43,91 @@ export interface GenerateStoryOutput {
   error: string | null;
 }
 
-// --- Prompt ---
+// ─── Topic generation ─────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a language learning story generator. Your task is to write a short, engaging story (3–6 sentences) to help a student practise vocabulary.
+const TOPICS_SYSTEM_PROMPT = `You generate a list of engaging story topics tailored to a person's profile.
+Output exactly 20 topics, one per line, with no numbering, bullets, or extra punctuation.
+Each topic is a short imaginative phrase (4–8 words) that could serve as a story premise.
+Mix a wide variety: everyday adventures, fantasy, science fiction, nature, sports, food, travel, mysteries, humour, and other creative scenarios.
+Do not repeat themes. Make each topic distinct and vivid.`;
+
+function buildTopicsUserPrompt(profile: UserProfile): string {
+  const parts: string[] = [];
+  if (profile.age)                              parts.push(`age ${profile.age}`);
+  if (profile.gender && profile.gender !== 'other') parts.push(profile.gender);
+  if (profile.interests)                        parts.push(`interests: ${profile.interests}`);
+
+  const profileDesc = parts.length > 0
+    ? parts.join(', ')
+    : 'a general adult learner with broad interests';
+
+  return `Generate 20 diverse and imaginative story topics for a person with this profile: ${profileDesc}.
+Make them varied — include magical, adventurous, humorous, and everyday scenarios.
+Output exactly 20 topics, one per line, no numbering.`;
+}
+
+/**
+ * Asks Claude to generate 20 story topics suited to the student's profile.
+ * The topics are stored in DynamoDB (ProfileTopics model) by the caller and
+ * reused across sessions; this function is only called when the profile changes.
+ * Never throws — returns { error } on any failure.
+ */
+export async function generateProfileTopics(input: GenerateTopicsInput): Promise<GenerateTopicsOutput> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return { topics: [], error: 'Missing API key.' };
+  }
+
+  try {
+    const anthropic = new Anthropic({ apiKey });
+
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',   // fast + cheap for a list task
+      max_tokens: 400,
+      system: TOPICS_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: buildTopicsUserPrompt(input.userProfile) }],
+    });
+
+    const raw = response.content
+      .filter((b) => b.type === 'text')
+      .map((b) => (b as { type: 'text'; text: string }).text)
+      .join('')
+      .trim();
+
+    const topics = raw
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0)
+      .slice(0, 20);
+
+    if (topics.length === 0) {
+      return { topics: [], error: 'Topic generation returned no content.' };
+    }
+
+    return { topics, error: null };
+  } catch (err) {
+    return { topics: [], error: err instanceof Error ? err.message : 'Topic generation failed.' };
+  }
+}
+
+// ─── Story generation ─────────────────────────────────────────────────────────
+
+const STORY_STYLES = [
+  'comic and absurd',
+  'suspenseful and mysterious',
+  'heartwarming and cozy',
+  'epic and heroic',
+  'fast-paced and action-packed',
+  'whimsical and dreamlike',
+  'dark and eerie',
+  'satirical and witty',
+  'poetic and lyrical',
+  'philosophical and thought-provoking',
+  'slapstick and chaotic',
+  'tender and melancholic',
+];
+
+const STORY_SYSTEM_PROMPT = `You are a language learning story generator. Your task is to write a short, engaging story (3–6 sentences) to help a student practise vocabulary.
 
 Rules you must follow without exception:
 1. Always write the story in the TARGET language — no exceptions, even if the ALLOWED VOCABULARY list is empty or very short. Use basic, high-frequency grammatical words (articles, prepositions, pronouns, common verbs like be/have/go) to fill the story around the blanks whenever the vocabulary list is limited.
@@ -51,23 +145,14 @@ Rules you must follow without exception:
 6. Make the story imaginative, surprising, or fantastical — dragons, time travel, talking objects, absurd situations, unexpected twists. Unusual stories are more memorable than realistic ones. Lean into creativity.
 7. Output only the story text. No headers, labels, commentary, or explanation.
 8. The story should be coherent and the correct word for each blank should be reasonably inferable from context.
-9. If a STUDENT PROFILE is provided, tailor the story accordingly:
-   - The main character(s) should resemble the student (similar age, gender if known).
-   - Choose a setting or theme from the student's listed interests when possible, blended with fantasy and imagination.
-   - If no profile is provided, write an imaginative story suitable for a general adult learner.`;
+9. If a STORY TOPIC is provided, use it as the primary theme or setting — interpret it freely and imaginatively; it need not be literal.
+10. A NARRATIVE STYLE will be provided. Let it colour the tone, mood, and voice of the story — do not ignore it.
+11. If a STUDENT PROFILE is provided, use it as soft guidance only:
+    - Age → calibrate sentence complexity to match the student's level (simpler for younger, richer for older).
+    - Gender → the main character may reflect the student's gender, but this is optional.
+    Do not force the profile into the narrative; let the topic drive the story.`;
 
-function buildProfileSection(profile?: UserProfile): string {
-  if (!profile || (!profile.age && !profile.gender && !profile.interests)) return '';
-
-  const lines: string[] = [];
-  if (profile.age)       lines.push(`- Age: ${profile.age}`);
-  if (profile.gender && profile.gender !== 'other') lines.push(`- Gender: ${profile.gender}`);
-  if (profile.interests) lines.push(`- Interests: ${profile.interests}`);
-
-  return `\nSTUDENT PROFILE:\n${lines.join('\n')}\n`;
-}
-
-function buildUserPrompt(input: GenerateStoryInput): string {
+function buildStoryUserPrompt(input: GenerateStoryInput): string {
   const targetLang = languageName(input.targetLanguage);
   const sourceLang = languageName(input.sourceLanguage);
 
@@ -75,17 +160,29 @@ function buildUserPrompt(input: GenerateStoryInput): string {
     .map((w) => `- ${w.lemma} (${w.meaning})`)
     .join('\n');
 
-  // Cap at 80 words; they are pre-sorted by retention score descending by buildKnownVocab()
+  // Cap at 80 words; pre-sorted by retention score descending by buildKnownVocab()
   const vocabList = input.knownVocab
     .slice(0, 80)
     .map((w) => w.lemma)
     .join(', ');
 
-  const profileSection = buildProfileSection(input.userProfile);
+  const topicLine = input.storyTopic
+    ? `\nSTORY TOPIC: ${input.storyTopic}\n`
+    : '';
+
+  const style = STORY_STYLES[Math.floor(Math.random() * STORY_STYLES.length)];
+  const styleLine = `\nNARRATIVE STYLE: ${style}\n`;
+
+  const profileLines: string[] = [];
+  if (input.userProfile?.age)                                    profileLines.push(`- Age: ${input.userProfile.age}`);
+  if (input.userProfile?.gender && input.userProfile.gender !== 'other') profileLines.push(`- Gender: ${input.userProfile.gender}`);
+  const profileSection = profileLines.length > 0
+    ? `\nSTUDENT PROFILE (soft hints only):\n${profileLines.join('\n')}\n`
+    : '';
 
   return `TARGET LANGUAGE: ${targetLang}
 SOURCE LANGUAGE: ${sourceLang}
-${profileSection}
+${topicLine}${styleLine}${profileSection}
 TARGET WORDS (these become blanks in the story):
 ${targetWordLines}
 
@@ -94,8 +191,6 @@ ${vocabList || '(none yet)'}
 
 Write the story now.`;
 }
-
-// --- Server Action ---
 
 /**
  * Calls the Claude API to generate a story for a group of target words.
@@ -112,15 +207,14 @@ export async function generateStory(input: GenerateStoryInput): Promise<Generate
   }
 
   try {
-    // Instantiate inside the function body — never at module scope — so the key
-    // is only read server-side and never bundled into client code.
     const anthropic = new Anthropic({ apiKey });
 
     const response = await anthropic.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 600,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: buildUserPrompt(input) }],
+      temperature: 1,   // max creativity — each call should feel genuinely different
+      system: STORY_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: buildStoryUserPrompt(input) }],
     });
 
     const storyText = response.content
@@ -129,7 +223,6 @@ export async function generateStory(input: GenerateStoryInput): Promise<Generate
       .join('')
       .trim();
 
-    // Validate that the response contains exactly the expected number of blanks.
     const expectedBlanks = input.targetWords.length;
     if (countBlanks(storyText) !== expectedBlanks) {
       return {

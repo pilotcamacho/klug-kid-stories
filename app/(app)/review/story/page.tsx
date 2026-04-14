@@ -13,7 +13,7 @@ import {
   type Segment,
   type StoryGroup,
 } from '@/lib/storySession';
-import { generateStory, type UserProfile } from './actions';
+import { generateStory, generateProfileTopics, type UserProfile } from './actions';
 import { withAuthRetry } from '@/lib/authRetry';
 import SessionHeader from '../components/SessionHeader';
 import SessionSummary from '../components/SessionSummary';
@@ -90,7 +90,10 @@ export default function StoryReviewPage() {
   const sessionItemsRef = useRef<ReturnType<typeof buildSession>['items']>([]);
   const sessionRef      = useRef<ReturnType<typeof buildSession> | null>(null);
   const settingsRef     = useRef<{ targetLanguage: string; sourceLanguage: string; userProfile: UserProfile } | null>(null);
+  const topicsRef       = useRef<string[]>([]);
   const todayEndMsRef   = useRef<number>(0);
+  // Incremented on each loadSession call; lets async continuations detect they've been superseded.
+  const loadGenRef      = useRef(0);
 
   // Story state
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
@@ -109,11 +112,25 @@ export default function StoryReviewPage() {
     return { input: '', submitting: false, submitted: false, result: null as SubmitAnswerOutput | null, submitError: null as string | null, questionStartedAt: Date.now() };
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function computeAge(dateOfBirth: string): number | undefined {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let years = today.getFullYear() - dob.getFullYear();
+    const hadBirthday =
+      today.getMonth() > dob.getMonth() ||
+      (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+    if (!hadBirthday) years -= 1;
+    return years > 0 ? years : undefined;
+  }
+
   // ── Load session on mount ───────────────────────────────────────────────────
 
   useEffect(() => { loadSession(); }, []);
 
   async function loadSession() {
+    const gen = ++loadGenRef.current;   // capture generation id before any await
     setPhase('loading');
     setLoadError(null);
 
@@ -121,13 +138,17 @@ export default function StoryReviewPage() {
       const { todayStartMs, todayEndMs, todayStartISO } = getTodayBounds();
       todayEndMsRef.current = todayEndMs;
 
-      const [settingsResult, progressResult, reviewEventsResult, wordMeaningsResult] =
+      const [settingsResult, progressResult, reviewEventsResult, wordMeaningsResult, profileTopicsResult] =
         await withAuthRetry(() => Promise.all([
           client.models.UserSettings.list(),
           client.models.UserWordProgress.list(),
           client.models.ReviewEvent.list({ filter: { createdAt: { ge: todayStartISO } } }),
           client.models.WordMeaning.list(),
+          client.models.ProfileTopics.list(),
         ]));
+
+      // If a newer loadSession call started while we were awaiting, abandon this one.
+      if (gen !== loadGenRef.current) return;
 
       if (settingsResult.errors?.length)     throw new Error(settingsResult.errors[0].message);
       if (progressResult.errors?.length)     throw new Error(progressResult.errors[0].message);
@@ -137,28 +158,47 @@ export default function StoryReviewPage() {
       const settings = settingsResult.data[0];
       if (!settings?.targetLanguage) { setPhase('no_settings'); return; }
 
-      const age = settings.profileDateOfBirth
-        ? (() => {
-            const dob = new Date(settings.profileDateOfBirth);
-            const today = new Date();
-            let years = today.getFullYear() - dob.getFullYear();
-            const hadBirthday =
-              today.getMonth() > dob.getMonth() ||
-              (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
-            if (!hadBirthday) years -= 1;
-            return years > 0 ? years : undefined;
-          })()
-        : undefined;
+      const age = settings.profileDateOfBirth ? computeAge(settings.profileDateOfBirth) : undefined;
+      const userProfile: UserProfile = {
+        age,
+        gender: settings.profileGender ?? undefined,
+        interests: settings.profileInterests ?? undefined,
+      };
 
       settingsRef.current = {
         targetLanguage: settings.targetLanguage,
         sourceLanguage: settings.sourceLanguage ?? 'en',
-        userProfile: {
-          age,
-          gender: settings.profileGender ?? undefined,
-          interests: settings.profileInterests ?? undefined,
-        },
+        userProfile,
       };
+
+      // ── Profile topics: generate if missing or profile has changed ────────────
+      const profileSnapshot = JSON.stringify({
+        age: age ?? null,
+        gender: settings.profileGender ?? null,
+        interests: settings.profileInterests ?? null,
+      });
+      const existingTopicsRecord = profileTopicsResult.data?.[0];
+      const topicsAreFresh = existingTopicsRecord?.profileSnapshot === profileSnapshot
+        && (existingTopicsRecord.topics?.length ?? 0) > 0;
+
+      if (topicsAreFresh) {
+        topicsRef.current = existingTopicsRecord.topics as string[];
+      } else {
+        // Generate 20 topics via Claude (Haiku — fast and cheap)
+        const topicsResult = await generateProfileTopics({ userProfile });
+        if (!topicsResult.error && topicsResult.topics.length > 0) {
+          topicsRef.current = topicsResult.topics;
+          const payload = { topics: topicsResult.topics, profileSnapshot };
+          if (existingTopicsRecord) {
+            await client.models.ProfileTopics.update({ id: existingTopicsRecord.id, ...payload });
+          } else {
+            await client.models.ProfileTopics.create(payload);
+          }
+        } else {
+          // Non-fatal: fall back to an empty list — stories will still be generated without a topic
+          topicsRef.current = [];
+        }
+      }
 
       const filteredWords = wordMeaningsResult.data.filter(
         (w) => w.targetLanguage === settings.targetLanguage,
@@ -213,6 +253,9 @@ export default function StoryReviewPage() {
       const groups = groupSessionItems(session.items);
       storyGroupsRef.current = groups;
 
+      // Final staleness check after all awaits (topic generation may have taken time).
+      if (gen !== loadGenRef.current) return;
+
       setCurrentGroupIndex(0);
       setCorrectCount(0);
       setNewIntroduced(0);
@@ -244,6 +287,12 @@ export default function StoryReviewPage() {
 
     const { targetLanguage, sourceLanguage, userProfile } = settingsRef.current!;
 
+    // Pick a random topic from the pre-generated list; undefined if list is empty.
+    const topics = topicsRef.current;
+    const storyTopic = topics.length > 0
+      ? topics[Math.floor(Math.random() * topics.length)]
+      : undefined;
+
     const result = await generateStory({
       targetWords: group.items.map((item) => ({
         wordMeaningId: item.wordMeaningId,
@@ -253,6 +302,7 @@ export default function StoryReviewPage() {
       knownVocab,
       targetLanguage,
       sourceLanguage,
+      storyTopic,
       userProfile,
     });
 
