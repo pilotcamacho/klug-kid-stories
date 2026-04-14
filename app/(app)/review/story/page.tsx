@@ -13,7 +13,7 @@ import {
   type Segment,
   type StoryGroup,
 } from '@/lib/storySession';
-import { generateStory, generateProfileTopics, type UserProfile } from './actions';
+import { generateStory, generateProfileTopics, type UserProfile, type NarrativeTense } from './actions';
 import { withAuthRetry } from '@/lib/authRetry';
 import SessionHeader from '../components/SessionHeader';
 import SessionSummary from '../components/SessionSummary';
@@ -75,6 +75,7 @@ interface ActiveStory {
   input: string;
   submitting: boolean;
   submitError: string | null;
+  tense: NarrativeTense | null;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -367,6 +368,7 @@ export default function StoryReviewPage() {
       input: '',
       submitting: false,
       submitError: null,
+      tense: result.tense,
     });
     setPhase('active');
   }
@@ -582,6 +584,7 @@ export default function StoryReviewPage() {
             input={story.input}
             submitting={story.submitting}
             submitError={story.submitError}
+            tense={story.tense}
             onInputChange={(v) => setStory((s) => s ? { ...s, input: v } : s)}
             onSubmit={handleStorySubmit}
             onNext={handleStoryNext}

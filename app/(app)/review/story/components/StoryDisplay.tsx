@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { Segment } from '@/lib/storySession';
 import type { SubmitAnswerOutput } from '@/lib/progressActions';
+import type { NarrativeTense } from '../actions';
 import AnswerInput from '../../components/AnswerInput';
 import FeedbackBanner from '../../components/FeedbackBanner';
 
@@ -14,6 +15,12 @@ interface BlankAnswer {
   conjugatedForm: string;
 }
 
+const TENSE_CONFIG: Record<NarrativeTense, { label: string; className: string }> = {
+  present: { label: 'Present tense',  className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  past:    { label: 'Past tense',     className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  future:  { label: 'Future tense',   className: 'bg-purple-50 text-purple-700 border-purple-200' },
+};
+
 interface StoryDisplayProps {
   segments: Segment[];
   currentBlankIndex: number;
@@ -21,6 +28,7 @@ interface StoryDisplayProps {
   input: string;
   submitting: boolean;
   submitError: string | null;
+  tense?: NarrativeTense | null;
   onInputChange: (v: string) => void;
   onSubmit: () => void;
   /** Advance to the next blank, next story group, or session summary. */
@@ -34,6 +42,7 @@ export default function StoryDisplay({
   input,
   submitting,
   submitError,
+  tense,
   onInputChange,
   onSubmit,
   onNext,
@@ -58,8 +67,19 @@ export default function StoryDisplay({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentAnswer?.submitted]);
 
+  const tenseConfig = tense ? TENSE_CONFIG[tense] : null;
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-8">
+      {/* Tense badge */}
+      {tenseConfig && (
+        <div className="mb-4">
+          <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full border ${tenseConfig.className}`}>
+            {tenseConfig.label}
+          </span>
+        </div>
+      )}
+
       {/* Story text with inline blanks */}
       <p className="text-base leading-8 text-gray-800 mb-6">
         {segments.map((seg, i) => {

@@ -37,10 +37,21 @@ export interface GenerateStoryInput {
   userProfile?: UserProfile;
 }
 
+export type NarrativeTense = 'present' | 'past' | 'future';
+
 export interface GenerateStoryOutput {
   storyText: string;
   targetWordMeaningIds: string[];
+  tense: NarrativeTense | null;
   error: string | null;
+}
+
+/** Weighted random tense: 50% present, 30% past, 20% future. */
+function pickTense(): NarrativeTense {
+  const r = Math.random();
+  if (r < 0.5) return 'present';
+  if (r < 0.8) return 'past';
+  return 'future';
 }
 
 // ─── Topic generation ─────────────────────────────────────────────────────────
@@ -147,12 +158,13 @@ Rules you must follow without exception:
 8. The story should be coherent and the correct word for each blank should be reasonably inferable from context.
 9. If a STORY TOPIC is provided, use it as the primary theme or setting — interpret it freely and imaginatively; it need not be literal.
 10. A NARRATIVE STYLE will be provided. Let it colour the tone, mood, and voice of the story — do not ignore it.
-11. If a STUDENT PROFILE is provided, use it as soft guidance only:
+11. A NARRATIVE TENSE will be provided. Write the entire story consistently in that tense — every verb must agree with it. Do not mix tenses under any circumstances.
+12. If a STUDENT PROFILE is provided, use it as soft guidance only:
     - Age → calibrate sentence complexity to match the student's level (simpler for younger, richer for older).
     - Gender → the main character may reflect the student's gender, but this is optional.
     Do not force the profile into the narrative; let the topic drive the story.`;
 
-function buildStoryUserPrompt(input: GenerateStoryInput): string {
+function buildStoryUserPrompt(input: GenerateStoryInput, tense: NarrativeTense): string {
   const targetLang = languageName(input.targetLanguage);
   const sourceLang = languageName(input.sourceLanguage);
 
@@ -172,6 +184,7 @@ function buildStoryUserPrompt(input: GenerateStoryInput): string {
 
   const style = STORY_STYLES[Math.floor(Math.random() * STORY_STYLES.length)];
   const styleLine = `\nNARRATIVE STYLE: ${style}\n`;
+  const tenseLine = `\nNARRATIVE TENSE: ${tense}\n`;
 
   const profileLines: string[] = [];
   if (input.userProfile?.age)                                    profileLines.push(`- Age: ${input.userProfile.age}`);
@@ -182,7 +195,7 @@ function buildStoryUserPrompt(input: GenerateStoryInput): string {
 
   return `TARGET LANGUAGE: ${targetLang}
 SOURCE LANGUAGE: ${sourceLang}
-${topicLine}${styleLine}${profileSection}
+${topicLine}${styleLine}${tenseLine}${profileSection}
 TARGET WORDS (these become blanks in the story):
 ${targetWordLines}
 
@@ -202,9 +215,12 @@ export async function generateStory(input: GenerateStoryInput): Promise<Generate
     return {
       storyText: '',
       targetWordMeaningIds: [],
+      tense: null,
       error: 'Story generation is not configured (missing API key).',
     };
   }
+
+  const tense = pickTense();
 
   try {
     const anthropic = new Anthropic({ apiKey });
@@ -214,7 +230,7 @@ export async function generateStory(input: GenerateStoryInput): Promise<Generate
       max_tokens: 600,
       temperature: 1,   // max creativity — each call should feel genuinely different
       system: STORY_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: buildStoryUserPrompt(input) }],
+      messages: [{ role: 'user', content: buildStoryUserPrompt(input, tense) }],
     });
 
     const storyText = response.content
@@ -228,6 +244,7 @@ export async function generateStory(input: GenerateStoryInput): Promise<Generate
       return {
         storyText: '',
         targetWordMeaningIds: [],
+        tense: null,
         error: `Story generation produced an unexpected number of blanks (expected ${expectedBlanks}). Falling back to word-by-word mode.`,
       };
     }
@@ -235,12 +252,14 @@ export async function generateStory(input: GenerateStoryInput): Promise<Generate
     return {
       storyText,
       targetWordMeaningIds: input.targetWords.map((w) => w.wordMeaningId),
+      tense,
       error: null,
     };
   } catch (err) {
     return {
       storyText: '',
       targetWordMeaningIds: [],
+      tense: null,
       error: err instanceof Error ? err.message : 'Story generation failed.',
     };
   }

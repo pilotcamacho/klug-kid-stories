@@ -45,6 +45,7 @@ Profile → 20 cached topics → random topic per story:
 - Blank format in generated text: `___ [conjugated-form] (source-translation)`.
 - Validates blank count matches `targetWords.length`; returns `{ error }` on mismatch so caller can fall back.
 - Narrative style: one of 12 tones (comic/absurd, suspenseful/mysterious, heartwarming/cozy, etc.) picked at random server-side per call — independent of topic, for variety.
+- Narrative tense: weighted random — 50% present, 30% past, 20% future. Picked in `generateStory()` via `pickTense()`, included in `GenerateStoryOutput.tense`, and passed to `StoryDisplay` for display.
 
 ## Story content rules (system prompt)
 
@@ -53,6 +54,18 @@ Profile → 20 cached topics → random topic per story:
 - Each target word appears exactly once as a blank.
 - Complexity scales with vocabulary level (simple words → short sentences; advanced → richer prose).
 - Stories must be imaginative/fantastical (dragons, time travel, absurd situations) to maximise memorability.
+
+## Tense badge (`StoryDisplay.tsx`)
+
+A small colored pill is shown above the story text to tell the reader what tense to expect:
+
+| Tense | Color |
+|---|---|
+| Present | Blue (`bg-blue-50 / text-blue-700`) |
+| Past | Amber (`bg-amber-50 / text-amber-700`) |
+| Purple | Purple (`bg-purple-50 / text-purple-700`) |
+
+The badge is purely informational — it does not affect answer evaluation.
 
 ## StoryDisplay answer flow
 
