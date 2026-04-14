@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import type { SessionItem } from '@/lib/session';
 import type { SubmitAnswerOutput } from '@/lib/progressActions';
 import { languageName } from '@/app/lib/languages';
@@ -37,6 +38,21 @@ export default function ReviewCard({
 }: ReviewCardProps) {
   const isNew = item.wordType === 'new';
 
+  const onNextRef = useRef(onNext);
+  useEffect(() => { onNextRef.current = onNext; });
+
+  useEffect(() => {
+    if (!submitted) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onNextRef.current();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [submitted]);
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-8">
       {/* Badge */}
@@ -67,15 +83,24 @@ export default function ReviewCard({
         </p>
       )}
 
-      {/* Input */}
+      {/* Input — after submission, always show the correct answer in the field */}
       <div className="mb-4">
-        <AnswerInput
-          value={input}
-          onChange={onInputChange}
-          onEnter={submitted ? onNext : onSubmit}
-          disabled={submitted}
-          autoFocus={!submitted}
-        />
+        {submitted && result ? (
+          <div className="border rounded-md px-4 py-3 text-base bg-gray-50 flex items-center gap-3">
+            {!result.wasCorrect && input.trim() && (
+              <span className="text-red-500 line-through">{input.trim()}</span>
+            )}
+            <span className="text-green-700 font-semibold">{item.lemma}</span>
+          </div>
+        ) : (
+          <AnswerInput
+            value={input}
+            onChange={onInputChange}
+            onEnter={onSubmit}
+            disabled={submitting}
+            autoFocus={true}
+          />
+        )}
       </div>
 
       {/* Feedback */}
@@ -104,7 +129,7 @@ export default function ReviewCard({
           onClick={onNext}
           className="w-full bg-gray-900 text-white py-2.5 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
         >
-          Next
+          Next (or press Enter)
         </button>
       )}
     </div>
