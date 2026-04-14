@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
 import { LANGUAGES, languageName } from '@/app/lib/languages';
@@ -141,6 +142,7 @@ function WordFormFields({
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function VocabularyPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<'my-words' | 'browse'>('my-words');
 
   // My Words state
@@ -293,12 +295,20 @@ export default function VocabularyPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Vocabulary</h1>
-        <button
-          onClick={openAddModal}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
-        >
-          + Add word
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push('/vocabulary/import')}
+            className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            Import from text
+          </button>
+          <button
+            onClick={openAddModal}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+          >
+            + Add word
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

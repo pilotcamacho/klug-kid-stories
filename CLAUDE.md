@@ -63,6 +63,10 @@ app/
     layout.tsx            # Auth gate (Authenticator) + NavBar
     dashboard/
     vocabulary/
+      import/
+        page.tsx          # Phase 6: text import flow
+        actions.ts        # Server Action: extractVocabulary() → Claude Haiku
+        CLAUDE.md         # Phase 6 implementation details
     review/
       page.tsx            # Phase 4: word-by-word review (default)
       components/         # AnswerInput, FeedbackBanner, ReviewCard, SessionHeader, etc.
@@ -134,6 +138,6 @@ In all three cases, a `UserWordProgress` record is created the first time the sc
 | 3 — SRS Algorithm | complete | `srs.ts`, `similarity.ts`; specs in `docs/ALGORITHM.md` + `docs/ANSWER_EVALUATION.md` |
 | 4 — Core Review Sessions | complete | Typed-answer review at `/review`; see `app/(app)/review/CLAUDE.md` |
 | 5 — Story-Based Review | complete | Story generation at `/review/story`; see `app/(app)/review/story/CLAUDE.md` |
-| 6 — Text Import | planned | Paste-a-text → Claude extracts + lemmatizes vocabulary |
+| 6 — Text Import | complete | Paste-a-text → Claude extracts + lemmatizes vocabulary; see `app/(app)/vocabulary/import/CLAUDE.md` |
 | 7 — AI-Enhanced Evaluation & Definitions | planned | Claude answer evaluation, word definitions, forgetting curve personalization |
 | 8 — Analytics & Polish | planned | Progress dashboard, mobile responsiveness, performance tuning |
