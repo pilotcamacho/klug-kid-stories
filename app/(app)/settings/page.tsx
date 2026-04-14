@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
 import { LANGUAGES } from '@/app/lib/languages';
+import { withAuthRetry } from '@/lib/authRetry';
 
 const client = generateClient<Schema>();
 
@@ -32,7 +33,7 @@ export default function SettingsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const { data } = await client.models.UserSettings.list();
+        const { data } = await withAuthRetry(() => client.models.UserSettings.list());
         const existing = data[0] as UserSettings | undefined;
         if (existing) {
           setSettingsId(existing.id);

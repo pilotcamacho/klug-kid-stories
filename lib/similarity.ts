@@ -6,6 +6,24 @@
 
 const SIMILARITY_FLOOR = 0.0;
 
+/**
+ * Maximum number of single-character edits allowed before an answer is
+ * immediately scored 0.0, regardless of the ratio-based score.
+ *
+ * Without this cap, the ratio formula is too permissive for short words:
+ *   "far" vs "fais" → distance 2, maxLen 4, score 0.75 — incorrectly passing.
+ *
+ * Thresholds by length of the longer word:
+ *   ≤ 4 chars  → max 1 edit  (e.g. "fais": must nearly be exact)
+ *   ≤ 7 chars  → max 2 edits
+ *   > 7 chars  → max 3 edits
+ */
+function maxAllowedEdits(maxLen: number): number {
+  if (maxLen <= 4) return 1;
+  if (maxLen <= 7) return 2;
+  return 3;
+}
+
 function levenshtein(a: string, b: string): number {
   const m = a.length;
   const n = b.length;
@@ -50,7 +68,10 @@ export function evaluateAnswer(studentResponse: string, expectedAnswer: string):
   if (maxLen === 0) return 1.0; // both empty strings → perfect match
 
   const distance = levenshtein(a, b);
-  const score = 1 - distance / maxLen;
 
+  // Hard cap: too many edits for this word length → flat 0.0.
+  if (distance > maxAllowedEdits(maxLen)) return SIMILARITY_FLOOR;
+
+  const score = 1 - distance / maxLen;
   return Math.max(SIMILARITY_FLOOR, score);
 }

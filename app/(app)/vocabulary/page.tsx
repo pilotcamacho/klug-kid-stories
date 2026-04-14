@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '@/amplify/data/resource';
 import { LANGUAGES, languageName } from '@/app/lib/languages';
+import { withAuthRetry } from '@/lib/authRetry';
 
 const client = generateClient<Schema>();
 
@@ -169,9 +170,9 @@ export default function VocabularyPage() {
     setMyWordsLoading(true);
     setMyWordsError(null);
     try {
-      const { data, errors } = await client.models.WordMeaning.list({
+      const { data, errors } = await withAuthRetry(() => client.models.WordMeaning.list({
         filter: { sourceType: { ne: 'preloaded' } },
-      });
+      }));
       if (errors?.length) throw new Error(errors[0].message);
       setMyWords(data.sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? '')));
     } catch (err) {
@@ -186,9 +187,9 @@ export default function VocabularyPage() {
     setBrowseLoading(true);
     setBrowseError(null);
     try {
-      const { data, errors } = await client.models.WordMeaning.list({
+      const { data, errors } = await withAuthRetry(() => client.models.WordMeaning.list({
         filter: { isShared: { eq: true } },
-      });
+      }));
       if (errors?.length) throw new Error(errors[0].message);
       setBrowseWords(
         data.sort((a, b) => (a.frequencyRank ?? 9999) - (b.frequencyRank ?? 9999)),

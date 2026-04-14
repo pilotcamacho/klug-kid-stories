@@ -11,7 +11,7 @@ import { evaluateAnswer } from './similarity';
 import { computeReview } from './srs';
 
 // Score threshold above which an answer counts as correct.
-export const CORRECT_THRESHOLD = 0.6;
+export const CORRECT_THRESHOLD = 0.8;
 
 // --- Types ---
 

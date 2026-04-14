@@ -14,6 +14,7 @@ import {
   type StoryGroup,
 } from '@/lib/storySession';
 import { generateStory, type UserProfile } from './actions';
+import { withAuthRetry } from '@/lib/authRetry';
 import SessionHeader from '../components/SessionHeader';
 import SessionSummary from '../components/SessionSummary';
 import EmptySession from '../components/EmptySession';
@@ -121,12 +122,12 @@ export default function StoryReviewPage() {
       todayEndMsRef.current = todayEndMs;
 
       const [settingsResult, progressResult, reviewEventsResult, wordMeaningsResult] =
-        await Promise.all([
+        await withAuthRetry(() => Promise.all([
           client.models.UserSettings.list(),
           client.models.UserWordProgress.list(),
           client.models.ReviewEvent.list({ filter: { createdAt: { ge: todayStartISO } } }),
           client.models.WordMeaning.list(),
-        ]);
+        ]));
 
       if (settingsResult.errors?.length)     throw new Error(settingsResult.errors[0].message);
       if (progressResult.errors?.length)     throw new Error(progressResult.errors[0].message);
