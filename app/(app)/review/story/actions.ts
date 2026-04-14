@@ -75,6 +75,7 @@ Write the story now.`;
  */
 export async function generateStory(input: GenerateStoryInput): Promise<GenerateStoryOutput> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
+  console.log('[generateStory] ANTHROPIC_API_KEY present:', !!apiKey, '| length:', apiKey?.length ?? 0);
   if (!apiKey) {
     return {
       storyText: '',
