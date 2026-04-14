@@ -13,7 +13,7 @@ import {
   type Segment,
   type StoryGroup,
 } from '@/lib/storySession';
-import { generateStory } from './actions';
+import { generateStory, type UserProfile } from './actions';
 import SessionHeader from '../components/SessionHeader';
 import SessionSummary from '../components/SessionSummary';
 import EmptySession from '../components/EmptySession';
@@ -88,7 +88,7 @@ export default function StoryReviewPage() {
   const allWordMeanRef  = useRef<Parameters<typeof buildKnownVocab>[1]>([]);
   const sessionItemsRef = useRef<ReturnType<typeof buildSession>['items']>([]);
   const sessionRef      = useRef<ReturnType<typeof buildSession> | null>(null);
-  const settingsRef     = useRef<{ targetLanguage: string; sourceLanguage: string } | null>(null);
+  const settingsRef     = useRef<{ targetLanguage: string; sourceLanguage: string; userProfile: UserProfile } | null>(null);
   const todayEndMsRef   = useRef<number>(0);
 
   // Story state
@@ -136,9 +136,27 @@ export default function StoryReviewPage() {
       const settings = settingsResult.data[0];
       if (!settings?.targetLanguage) { setPhase('no_settings'); return; }
 
+      const age = settings.profileDateOfBirth
+        ? (() => {
+            const dob = new Date(settings.profileDateOfBirth);
+            const today = new Date();
+            let years = today.getFullYear() - dob.getFullYear();
+            const hadBirthday =
+              today.getMonth() > dob.getMonth() ||
+              (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+            if (!hadBirthday) years -= 1;
+            return years > 0 ? years : undefined;
+          })()
+        : undefined;
+
       settingsRef.current = {
         targetLanguage: settings.targetLanguage,
         sourceLanguage: settings.sourceLanguage ?? 'en',
+        userProfile: {
+          age,
+          gender: settings.profileGender ?? undefined,
+          interests: settings.profileInterests ?? undefined,
+        },
       };
 
       const filteredWords = wordMeaningsResult.data.filter(
@@ -223,7 +241,7 @@ export default function StoryReviewPage() {
       sessionWordIds,
     );
 
-    const { targetLanguage, sourceLanguage } = settingsRef.current!;
+    const { targetLanguage, sourceLanguage, userProfile } = settingsRef.current!;
 
     const result = await generateStory({
       targetWords: group.items.map((item) => ({
@@ -234,6 +252,7 @@ export default function StoryReviewPage() {
       knownVocab,
       targetLanguage,
       sourceLanguage,
+      userProfile,
     });
 
     console.log('[StoryReview] generateStory result:', result);

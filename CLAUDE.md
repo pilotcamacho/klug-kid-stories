@@ -54,22 +54,36 @@ npm run lint
 
 ```
 amplify/
-  backend.ts          # Amplify backend entry point (auth + data)
-  auth/resource.ts    # Cognito configuration
-  data/resource.ts    # DynamoDB schema (TypeScript-first)
+  backend.ts              # Amplify backend entry point (auth + data)
+  auth/resource.ts        # Cognito configuration
+  data/resource.ts        # DynamoDB schema (TypeScript-first)
 app/
-  (app)/              # Route group: all authenticated routes
-    layout.tsx        # Auth gate (Authenticator) + NavBar
+  (app)/                  # Route group: all authenticated routes
+    layout.tsx            # Auth gate (Authenticator) + NavBar
     dashboard/
     vocabulary/
     review/
+      page.tsx            # Phase 4: word-by-word review (default)
+      components/         # AnswerInput, FeedbackBanner, ReviewCard, SessionHeader, etc.
+      story/
+        page.tsx          # Phase 5: story-based review (opt-in)
+        actions.ts        # Server Action: generateStory() → Claude API
+        components/       # StoryDisplay, StoryGenerating
     settings/
   components/
-    AmplifyProvider.tsx  # Configures Amplify + provides Authenticator context
-    AuthProvider.tsx     # Authenticator modal wrapper for protected routes
-    NavBar.tsx           # Top navigation bar
-  layout.tsx          # Root layout (wraps everything in AmplifyProvider)
-  page.tsx            # Redirects / to /dashboard
+    AmplifyProvider.tsx   # Configures Amplify + provides Authenticator context
+    AuthProvider.tsx      # Authenticator modal wrapper for protected routes
+    NavBar.tsx            # Top navigation bar
+  lib/
+    languages.ts          # ISO 639-1 language list + helpers
+  layout.tsx              # Root layout (wraps everything in AmplifyProvider)
+  page.tsx                # Redirects / to /dashboard
+lib/
+  session.ts              # buildSession() — SRS session builder
+  progressActions.ts      # submitAnswer() — writes ReviewEvent + UserWordProgress
+  srs.ts                  # computeReview() — SRS algorithm
+  similarity.ts           # evaluateAnswer() — string similarity scoring
+  storySession.ts         # groupSessionItems(), buildKnownVocab(), parseStoryBlanks()
 ```
 
 ---
@@ -107,21 +121,91 @@ In all three cases, a `UserWordProgress` record is created the first time the sc
 
 ---
 
+## Data Schema
+
+Defined in `amplify/data/resource.ts` using the Amplify Gen 2 TypeScript schema API.
+
+### WordMeaning
+
+One row per semantic sense of a lemma. Owned by creator; pre-loaded (shared) words are readable by all authenticated users.
+
+| Field | Type | Notes |
+|---|---|---|
+| `lemma` | `string` required | Base form of the word (no inflection) |
+| `meaning` | `string` required | Human-readable definition in the student's source language |
+| `targetLanguage` | `string` required | ISO 639-1 code of the language being learned (e.g. `"de"`) |
+| `sourceLanguage` | `string` required | ISO 639-1 code of the student's reference language (e.g. `"en"`) |
+| `exampleSentence` | `string` optional | Example sentence in the target language |
+| `isShared` | `boolean` optional | `true` for pre-loaded frequency words visible to all users |
+| `frequencyRank` | `integer` optional | Frequency rank within the corpus (1 = most frequent); `null` for manual words |
+| `sourceType` | `enum` optional | `preloaded` / `manual` / `text_import` |
+
+### UserWordProgress
+
+Per-user SRS state for a word meaning. Owner-only.
+
+| Field | Type | Notes |
+|---|---|---|
+| `wordMeaningId` | `id` required | Foreign key to `WordMeaning` |
+| `retentionScore` | `integer` optional | Estimated days until forgetting; computed by `lib/srs.ts` |
+| `nextReviewAt` | `datetime` required | When the scheduler will surface this word next |
+| `lastReviewedAt` | `datetime` optional | Timestamp of the most recent review |
+| `reviewCount` | `integer` optional | Total number of times this word has been reviewed |
+| `correctCount` | `integer` optional | Number of correct answers |
+| `introducedAt` | `datetime` required | When this word was first introduced; set once at creation |
+
+### ReviewEvent
+
+Immutable log of each review attempt. Used to refine the forgetting curve. Owner-only.
+
+| Field | Type | Notes |
+|---|---|---|
+| `wordMeaningId` | `id` required | Foreign key to `WordMeaning` |
+| `wasCorrect` | `boolean` required | Whether the answer met `CORRECT_THRESHOLD` |
+| `responseScore` | `float` optional | Raw similarity score from `evaluateAnswer()`: [0.0, 1.0] |
+| `responseTimeMs` | `integer` optional | Time the student took to answer, in milliseconds |
+| `storyContext` | `string` optional | The story text presented (blank as `___`); stored for audit/ML use |
+
+### Story
+
+A generated review story. Ephemeral — not queried historically. Owner-only.
+
+| Field | Type | Notes |
+|---|---|---|
+| `content` | `string` required | Full story text; blanks represented as `___` |
+| `targetWordMeaningIds` | `string[]` required | IDs of the word meanings being tested |
+| `targetLanguage` | `string` required | ISO 639-1 language code of the story |
+
+### UserSettings
+
+Per-user configuration. Owner-only. One record per user; defaults applied if absent.
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `targetLanguage` | `string` | — | ISO 639-1 code of the language being learned |
+| `sourceLanguage` | `string` | `"en"` | ISO 639-1 code of the student's reference language |
+| `maxNewWordsPerDay` | `integer` | `10` | New word meanings introduced per calendar day |
+| `maxReviewsPerDay` | `integer` | `100` | Review items surfaced per calendar day |
+| `profileDateOfBirth` | `string` | — | ISO 8601 date (e.g. `"2010-05-23"`); age computed at runtime |
+| `profileGender` | `string` | — | `"male"` / `"female"` / `"other"`; used to personalise story characters |
+| `profileInterests` | `string` | — | Comma-separated interests (e.g. `"football, animals"`); used for story themes |
+
+---
+
 ## User Settings
 
-Each user has per-account settings that control the pace of learning:
+### Daily Limits
 
 | Setting | Description | Default |
 |---|---|---|
-| `maxNewWordsPerDay` | Maximum number of new word meanings introduced in a single day. Once reached, the session only shows reviews — no new words. | 10 |
-| `maxReviewsPerDay` | Maximum number of review items surfaced in a single day. Once reached, no further reviews are offered until the next day. | 100 |
+| `maxNewWordsPerDay` | Maximum new word meanings introduced in a single day. Once reached, the session only shows reviews. | 10 |
+| `maxReviewsPerDay` | Maximum review items surfaced in a single day. Once reached, no further reviews are offered until the next day. | 100 |
 
 **Behavior rules:**
 - Both limits are enforced at session-start time and rechecked if a session spans midnight.
 - "New word" counts any `UserWordProgress` record created for the first time on that calendar day (in the user's local timezone).
 - "Review" counts each individual word meaning presented during a review session, not each story.
-- Settings are stored in a `UserSettings` model (owner-only) and exposed in the `/settings` route.
-- Sensible defaults apply if no record exists yet for a user.
+- Sensible defaults apply if no `UserSettings` record exists yet for a user.
 - **Language filtering:** Review sessions only surface words whose `targetLanguage` matches `UserSettings.targetLanguage`. If no target language is configured, the session blocks with a prompt to visit Settings. Daily review counts are also scoped to the active target language, so switching languages mid-day does not consume another language's quota.
 
 **New word ordering:**
@@ -129,19 +213,15 @@ Each user has per-account settings that control the pace of learning:
 - Words added **manually or via text import** are introduced in insertion order (oldest first).
 - When both sources are available, pre-loaded words take priority over user-added words within the same day's new-word slot.
 
----
+### Student Profile
 
-## Data Schema
+Collected on the `/settings` page. Used exclusively to personalise AI-generated stories — not used for any SRS scheduling logic.
 
-Defined in `amplify/data/resource.ts` using the Amplify Gen 2 TypeScript schema API.
-
-| Model | Purpose |
-|---|---|
-| `WordMeaning` | One row per semantic sense of a lemma. Owned by creator; shared words are readable by all authenticated users. |
-| `UserWordProgress` | Per-user SRS state for a word meaning: `retentionScore`, `nextReviewAt`, review counts. Owner-only. |
-| `ReviewEvent` | Immutable log of each review attempt. Used to train/refine the forgetting curve. Owner-only. |
-| `Story` | A generated review story. Stores content (blanks as `___`) and target word meaning IDs. Owner-only. |
-| `UserSettings` | Per-user configuration: `maxNewWordsPerDay`, `maxReviewsPerDay`. Owner-only. One record per user; defaults applied if absent. |
+| Field | UI input | Purpose |
+|---|---|---|
+| `profileDateOfBirth` | Date picker | Age is calculated at runtime from DOB; drives story complexity |
+| `profileGender` | Dropdown | Main story character matches the student's gender |
+| `profileInterests` | Free text | Story themes are drawn from the student's interests |
 
 ---
 
@@ -151,7 +231,7 @@ AI (Claude API) is used in the following parts of the platform:
 
 | Feature | AI Role |
 |---|---|
-| **Story generation** | Given the set of known words and a target word to test, Claude generates a short, coherent story using only allowed vocabulary, with the target word replaced by a blank. |
+| **Story generation** | Given known vocabulary and a set of target words to test, Claude generates a short, coherent story in the target language using only allowed vocabulary, with target words replaced by blanks. Stories are personalised to the student's age, gender, and interests via the student profile. |
 | **Word extraction from text** | When a student imports a text, Claude extracts distinct word meanings, lemmatizes them, and disambiguates multiple senses of the same word form. |
 | **Answer evaluation** | Claude determines whether a typed answer is an acceptable form of the correct lemma (handling conjugation, declination, and typos within tolerance). |
 | **Forgetting curve personalization** | A model uses the student's recall history to adjust interval predictions beyond the baseline SRS formula. |
@@ -170,139 +250,94 @@ AI (Claude API) is used in the following parts of the platform:
 ## Implementation Phases
 
 ### Phase 1 — Foundation (complete)
-Project scaffolding (Next.js + Amplify Gen 2), Cognito authentication (sign up, sign in, sign out), DynamoDB schema design (users, word meanings, review history), and basic UI shell with navigation.
 
-### Phase 2 — Vocabulary Management
+Project scaffolding (Next.js + Amplify Gen 2), Cognito authentication (sign up, sign in, sign out), DynamoDB schema design, and basic UI shell with navigation.
+
+### Phase 2 — Vocabulary Management (complete)
+
 Admin seeding script (`scripts/seed.ts`) that loads frequency-ordered `WordMeaning` records from `data/seeds/<language-code>/` into DynamoDB. Manual word meaning entry (student-owned `WordMeaning`). Vocabulary browser with CRUD operations for student-owned words. Pre-loaded words appear in the browser as read-only entries the student can choose to start studying.
 
-### Phase 3 — Proprietary SRS Algorithm Design & Implementation
-Design and implement two independent scoring services:
+### Phase 3 — SRS Algorithm (complete)
+
+Two independent scoring services:
 
 - **SRS algorithm** — computes `retentionScore` and `nextReviewAt` from a review event. Full specification in [`docs/ALGORITHM.md`](docs/ALGORITHM.md). Implemented in `lib/srs.ts`.
 - **Answer evaluation** — converts a student's typed response and the expected answer into a `responseScore` [0.0, 1.0] using string similarity. Full specification in [`docs/ANSWER_EVALUATION.md`](docs/ANSWER_EVALUATION.md). Implemented in `lib/similarity.ts`.
 
 Both services are tested via `scripts/test-srs.ts`.
 
+### Phase 4 — Core Review Sessions (complete)
 
-### Phase 4 — Core Review Sessions
 Typed-answer review sessions driven by the Phase 3 scheduler and answer evaluation. Retention score updates after each answer.
 
-#### Implementation Checklist
+#### Implementation
 
-**Step A — Schema**
-- [x] Add `introducedAt: a.datetime().required()` to `UserWordProgress` in `amplify/data/resource.ts`
-- [x] Run `npx ampx sandbox` to apply the schema change
-
-**Step B — Session Builder (`lib/session.ts`)**
-- [x] Define `WordType`, `SessionItem`, `BuildSessionInput`, `BuildSessionOutput` types
-- [x] Implement `buildSession()` pure function:
-  - [x] Separate progress into `dueForReview` (`nextReviewAt <= now`) and `introducedToday`
-  - [x] Compute `reviewSlotsLeft` and `newSlotsLeft` from daily limits
-  - [x] Collect due reviews ordered by `nextReviewAt` ascending (most overdue first)
-  - [x] Collect new words: pre-loaded by `frequencyRank` first, then user-added by `createdAt`
-  - [x] Return reviews first, new words after; set `emptyReason` when list is empty
-
-**Step C — Progress Actions (`lib/progressActions.ts`)**
-- [x] Define `SubmitAnswerInput` and `SubmitAnswerOutput` types
-- [x] Implement `submitAnswer()`:
-  - [x] Call `evaluateAnswer()` from `lib/similarity.ts` to get `responseScore`
-  - [x] Call `computeReview()` from `lib/srs.ts` to get new `retentionScore` / `nextReviewAt`
-  - [x] Fire `ReviewEvent.create()` and `UserWordProgress.create/update()` with `Promise.all`
-  - [x] Set `CORRECT_THRESHOLD = 0.6` as a named constant
-
-**Step D — UI Components (`app/(app)/review/components/`)**
-- [x] `AnswerInput.tsx` — controlled input; Enter submits or advances depending on state
-- [x] `FeedbackBanner.tsx` — green/yellow/red feedback with correct answer and next review interval
-- [x] `SessionHeader.tsx` — "Card N of M" progress bar + review/new pills
-- [x] `ReviewCard.tsx` — composes question, `AnswerInput`, and `FeedbackBanner`; "new word" vs "review" badge
-- [x] `EmptySession.tsx` — three messages: `daily_limit_reached`, `nothing_due`, `no_vocabulary`
-- [x] `SessionSummary.tsx` — score, new words introduced, restart and dashboard links
-
-**Step E — Review Page (`app/(app)/review/page.tsx`)**
-- [x] Fetch in parallel on mount: `UserSettings`, `UserWordProgress`, `ReviewEvent` (today only), `WordMeaning`
-- [x] Compute local-timezone today boundaries; call `buildSession()`
-- [x] Implement session state machine: `loading → active → complete | error`
-- [x] On answer submit: call `submitAnswer()`, show `FeedbackBanner`, wait for "Next"
-- [x] On card advance: check for midnight crossing (`Date.now() > todayEndMs`) → `location.reload()`
-- [x] On `submitAnswer` failure: show inline error with retry; do not advance card
-- [x] Question format (Phase 4, no stories): *"What is the [language] word for: [meaning]?"* with example sentence blanked as `___` if present
-- [x] Wire `SessionSummary` when `currentIndex === items.length`
-- [x] Wire `EmptySession` when `buildSession` returns empty list
+- **Schema:** `introducedAt: a.datetime().required()` added to `UserWordProgress`.
+- **`lib/session.ts`:** `buildSession()` separates due reviews from new words, enforces daily limits, orders by `nextReviewAt` ascending (reviews first, then new words by frequency rank / insertion order).
+- **`lib/progressActions.ts`:** `submitAnswer()` calls `evaluateAnswer()` + `computeReview()`, then writes `ReviewEvent` and `UserWordProgress` in parallel. `CORRECT_THRESHOLD = 0.6`.
+- **UI components (`app/(app)/review/components/`):** `AnswerInput`, `FeedbackBanner`, `SessionHeader`, `ReviewCard`, `EmptySession`, `SessionSummary`.
+- **`app/(app)/review/page.tsx`:** Parallel DynamoDB fetch on mount; state machine `loading → active → complete | error`; midnight recheck via `location.reload()`.
 
 #### Key Design Decisions
-- All data access is client-side via `generateClient<Schema>()` — no Server Actions or API routes (consistent with rest of app).
-- `introducedAt` is set in JS at `UserWordProgress` creation time; session page computes local calendar day boundaries from `new Date()` at load and passes them to `buildSession`.
+- All data access is client-side via `generateClient<Schema>()` — no Server Actions or API routes.
+- `introducedAt` is set in JS at `UserWordProgress` creation time; session page computes local calendar day boundaries and passes them to `buildSession()`.
 - Reviews are shown before new words within a session (reinforce before introducing new load).
-- Midnight recheck uses `location.reload()` — simple and correct for Phase 4; refactor in Phase 5.
 - Words are filtered to `settings.targetLanguage` before `buildSession()` is called. Review event counts are also scoped to that language's word IDs so daily quotas are per-language, not global.
+- Phase 4 (`/review`) is the default NavBar link; Phase 5 story mode is opt-in via a "Try Story Mode" button.
 
+### Phase 5 — Story-Based Review (complete)
 
-### Phase 5 — Story-Based Review (AI)
-Claude API integration. Story generation constrained to the student's known vocabulary, with target words replaced by blanks and in parenthesis the word in the sourceLanguage. Leave the plain review sessions from Phase 4 as a secondary way to study the vocabulary. If there is not enough known vocabulary to build the story, write the story in sourceLanguage still leaving the blank to fill out with the targetLanguage.
+Story generation constrained to the student's known vocabulary. Target words appear as blanks in the format `___ [conjugated-form] (source-translation)`. Stories are always written in the target language. If known vocabulary is insufficient (fewer than 15 words), the story is written in the source language with the same blank format. Story complexity scales with the student's vocabulary level. Stories are personalised to the student's age (derived from date of birth), gender, and interests.
 
-#### Implementation Checklist
+Plain word-by-word review (Phase 4) remains available at `/review` as a secondary study mode.
 
-**Step A — Install Anthropic SDK**
-- [x] Run `npm install @anthropic-ai/sdk`
-- [x] Add `ANTHROPIC_API_KEY` to `.env.local` (dev) and Amplify secrets (prod)
+#### Implementation
 
-**Step B — Story session utilities (`lib/storySession.ts`)**
-- [x] Export `KNOWN_VOCAB_THRESHOLD` (`minReviewCount: 2`, `minRetentionScore: 3`)
-- [x] Export `MAX_BLANKS_PER_STORY = 5`
-- [x] Export `StoryGroup`, `KnownVocabWord`, `Segment` types
-- [x] Implement `groupSessionItems(items): StoryGroup[]`
-- [x] Implement `buildKnownVocab(allProgress, allWordMeanings): KnownVocabWord[]`
-- [x] Implement `parseStoryBlanks(storyText): Segment[]`
+**Schema additions to `UserSettings`:**
+- `profileDateOfBirth: a.string()` — ISO 8601 date; age is computed at runtime.
+- `profileGender: a.string()` — `"male"` / `"female"` / `"other"`.
+- `profileInterests: a.string()` — comma-separated list of interests.
 
-**Step C — Server Action (`app/(app)/review/story/actions.ts`)**
-- [x] Mark file with `'use server'`
-- [x] Implement `generateStory(input): Promise<GenerateStoryOutput>`
-- [x] Instantiate Anthropic client inside function body (never at module scope)
-- [x] Build system prompt and user prompt as specified
-- [x] Validate blank count in response matches `targetWords.length`
-- [x] Return error string on any failure (no throw — caller handles gracefully)
+**`lib/storySession.ts`:**
+- `KNOWN_VOCAB_THRESHOLD`: `{ minReviewCount: 2, minRetentionScore: 3 }`.
+- `MAX_BLANKS_PER_STORY = 5`.
+- `groupSessionItems(items): StoryGroup[]` — chunks session items into groups of up to 5.
+- `buildKnownVocab(allProgress, allWordMeanings, excludeIds): KnownVocabWord[]` — returns words that meet the known threshold, sorted by retention score descending, excluding current session targets.
+- `parseStoryBlanks(storyText): Segment[]` — splits story text into `text` and `blank` segments.
 
-**Step D — Story session page (`app/(app)/review/story/page.tsx`)**
-- [x] State machine: `loading | generating | active | fallback | complete | empty | error | no_settings`
-- [x] Parallel DynamoDB fetch on mount (reuse Phase 4 pattern)
-- [x] Call `buildSession()`, `buildKnownVocab()`, `groupSessionItems()`
-- [x] On generate success: call `client.models.Story.create()` client-side, store `storyId`
-- [x] On generate failure: transition to `fallback`, render Phase 4 cards
-- [x] Track `currentGroupIndex` and `currentBlankIndex` in state
-- [x] On each blank answer: call `submitAnswer()` with `storyContext = storyText`
-- [x] On all blanks answered: generate next group or show `SessionSummary`
-- [x] Midnight recheck on group transition (same `location.reload()` pattern as Phase 4)
-- [x] Show "Switch to word-by-word" link that navigates to `/review`
+**`app/(app)/review/story/actions.ts`** (Server Action):
+- `generateStory(input): Promise<GenerateStoryOutput>` — calls Claude API, validates blank count, returns error string on any failure (never throws).
+- `GenerateStoryInput` includes `targetWords`, `knownVocab`, `targetLanguage`, `sourceLanguage`, and `userProfile` (`{ age?, gender?, interests? }`).
+- Age is computed from `profileDateOfBirth` in the story page and passed as a number.
+- System prompt instructs Claude to: write in target language, use only allowed vocabulary, format blanks as `___ [conjugated-form] (source-translation)`, and tailor story complexity / characters / themes to the student profile.
 
-**Step E — UI Components (`app/(app)/review/story/components/`)**
-- [x] `StoryDisplay.tsx` — inline blanks with per-blank `AnswerInput` and `FeedbackBanner`
-- [x] `StoryGenerating.tsx` — shimmer skeleton + "Generating your story…" text
+**`app/(app)/review/story/page.tsx`:**
+- State machine: `loading | generating | active | fallback | complete | empty | error | no_settings`.
+- Parallel DynamoDB fetch on mount (same pattern as Phase 4).
+- `Story.create()` performed client-side after successful generation; Server Action only calls Claude.
+- On any Claude failure (API error, blank count mismatch, missing key), session falls back to Phase 4 plain-card mode automatically.
+- Blanks answered sequentially; each blank calls `submitAnswer()` independently with `storyContext = storyText`.
+- Midnight recheck on group transition via `location.reload()`.
 
-**Step F — Extend `SessionItem` (`lib/session.ts`)**
-- [x] Add `sourceLanguage: string` to `SessionItem` interface
-- [x] Add `sourceLanguage: string` to `WordMeaningRecord` interface
-- [x] Update word mapping in `app/(app)/review/page.tsx` to include `sourceLanguage`
-
-**Step G — Phase 4 page update (`app/(app)/review/page.tsx`)**
-- [x] Add `sourceLanguage` to word mapping passed to `buildSession()`
-- [x] Add "Try Story Mode" link/button pointing to `/review/story`
+**`app/(app)/review/story/components/`:**
+- `StoryDisplay.tsx` — renders inline blanks with per-blank `AnswerInput` and `FeedbackBanner`.
+- `StoryGenerating.tsx` — shimmer skeleton while Claude generates.
 
 #### Key Design Decisions
-- Story generation is on-demand per session group (not pre-generated or cached across sessions).
-- Known vocabulary threshold: `reviewCount >= 2` AND `retentionScore >= 3`. Exposed as `KNOWN_VOCAB_THRESHOLD` in `lib/storySession.ts`.
-- Max 5 blanks per story; session items are chunked into `StoryGroup[]` by `groupSessionItems()`.
-- Blanks answered sequentially left-to-right within a story; each blank calls `submitAnswer()` independently.
+- Story generation is on-demand per session group — not pre-generated or cached across sessions.
+- `Story.create()` is client-side (Amplify user pool auth); the Server Action has no Amplify client.
+- `sourceLanguage` is read from `settings.sourceLanguage` in the story page rather than threaded through `SessionItem`, since all items in a session share the same source language.
 - Non-streaming generation — full story returned before rendering to avoid layout shifts.
-- `Story.create()` is performed client-side (Amplify user pool auth); the Server Action only calls Claude (no Amplify client in server context).
-- On any Claude failure (API error, blank count mismatch, missing key), session falls back to Phase 4 plain-card mode automatically.
-- Phase 4 (`/review`) remains the default NavBar link; Phase 5 (`/review/story`) is opt-in per session with a "Try Story Mode" button.
-- `sourceLanguage` is read from `settings.sourceLanguage` in the story page rather than threading it through `SessionItem`, since all items in a session share the same source language.
+- `CORRECT_THRESHOLD` is currently `0.6` (Phase 4 value). Target for story mode is `0.9`; pending update in `lib/progressActions.ts`.
 
-### Phase 6 — Text Import (AI)
+### Phase 6 — Text Import (planned)
+
 Paste-a-text flow: Claude extracts and lemmatizes vocabulary from the pasted text, disambiguates multiple senses, and presents the student with a review/add word list.
 
-### Phase 7 — AI-Enhanced Evaluation & Definitions
+### Phase 7 — AI-Enhanced Evaluation & Definitions (planned)
+
 Claude-powered answer evaluation (accepts valid inflected forms, typo tolerance), word definition and example sentence suggestions on manual entry, and forgetting curve personalization using the student's accumulated history.
 
-### Phase 8 — Analytics & Polish
+### Phase 8 — Analytics & Polish (planned)
+
 Student progress dashboard, vocabulary statistics, mobile responsiveness, and performance tuning.

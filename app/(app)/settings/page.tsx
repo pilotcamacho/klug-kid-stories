@@ -18,6 +18,9 @@ export default function SettingsPage() {
   const [sourceLanguage, setSourceLanguage] = useState('en');
   const [maxNewWordsPerDay, setMaxNewWordsPerDay] = useState(DEFAULT_MAX_NEW_WORDS);
   const [maxReviewsPerDay, setMaxReviewsPerDay] = useState(DEFAULT_MAX_REVIEWS);
+  const [profileDateOfBirth, setProfileDateOfBirth] = useState('');
+  const [profileGender, setProfileGender] = useState('');
+  const [profileInterests, setProfileInterests] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -37,6 +40,9 @@ export default function SettingsPage() {
           setSourceLanguage(existing.sourceLanguage ?? 'en');
           setMaxNewWordsPerDay(existing.maxNewWordsPerDay ?? DEFAULT_MAX_NEW_WORDS);
           setMaxReviewsPerDay(existing.maxReviewsPerDay ?? DEFAULT_MAX_REVIEWS);
+          setProfileDateOfBirth(existing.profileDateOfBirth ?? '');
+          setProfileGender(existing.profileGender ?? '');
+          setProfileInterests(existing.profileInterests ?? '');
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load settings.');
@@ -60,6 +66,9 @@ export default function SettingsPage() {
       sourceLanguage,
       maxNewWordsPerDay,
       maxReviewsPerDay,
+      profileDateOfBirth: profileDateOfBirth || undefined,
+      profileGender: profileGender || undefined,
+      profileInterests: profileInterests || undefined,
     };
 
     try {
@@ -216,6 +225,74 @@ export default function SettingsPage() {
                   setMaxReviewsPerDay(Math.max(1, parseInt(e.target.value, 10) || 1))
                 }
                 className="w-20 border border-gray-300 rounded-md px-3 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Student profile */}
+        <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              Student Profile
+            </h2>
+          </div>
+          <p className="px-5 pt-3 text-xs text-gray-400">
+            Used to personalise story themes and complexity.
+          </p>
+          <div className="divide-y divide-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 gap-4">
+              <div>
+                <label htmlFor="profileDateOfBirth" className="text-sm font-medium text-gray-700">
+                  Date of birth
+                </label>
+                <p className="text-xs text-gray-400 mt-0.5">Used to tailor story complexity and themes</p>
+              </div>
+              <input
+                id="profileDateOfBirth"
+                type="date"
+                value={profileDateOfBirth}
+                onChange={(e) => setProfileDateOfBirth(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-between px-5 py-4 gap-4">
+              <div>
+                <label htmlFor="profileGender" className="text-sm font-medium text-gray-700">
+                  Gender
+                </label>
+                <p className="text-xs text-gray-400 mt-0.5">Helps personalise story characters</p>
+              </div>
+              <select
+                id="profileGender"
+                value={profileGender}
+                onChange={(e) => setProfileGender(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Prefer not to say</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div className="px-5 py-4">
+              <div className="mb-2">
+                <label htmlFor="profileInterests" className="text-sm font-medium text-gray-700">
+                  Interests
+                </label>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Topics you enjoy — used to choose story themes (e.g. dinosaurs, football, cooking)
+                </p>
+              </div>
+              <input
+                id="profileInterests"
+                type="text"
+                placeholder="e.g. football, animals, space"
+                value={profileInterests}
+                onChange={(e) => setProfileInterests(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>

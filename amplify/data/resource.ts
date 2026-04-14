@@ -119,6 +119,12 @@ const schema = a.schema({
       maxNewWordsPerDay: a.integer(),
       /** Maximum review items surfaced per calendar day (default: 100) */
       maxReviewsPerDay: a.integer(),
+      /** Student's date of birth (ISO 8601 date, e.g. "2010-05-23") — age is computed at runtime */
+      profileDateOfBirth: a.string(),
+      /** Student's gender — used to personalise story characters (e.g. "male", "female", "other") */
+      profileGender: a.string(),
+      /** Comma-separated list of interests — used to choose story themes */
+      profileInterests: a.string(),
     })
     .authorization((allow) => [allow.owner()]),
 });

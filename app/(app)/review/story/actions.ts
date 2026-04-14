@@ -7,6 +7,12 @@ import type { KnownVocabWord } from '@/lib/storySession';
 
 // --- Types ---
 
+export interface UserProfile {
+  age?: number;
+  gender?: string;
+  interests?: string;
+}
+
 export interface GenerateStoryInput {
   targetWords: Array<{
     wordMeaningId: string;
@@ -16,6 +22,7 @@ export interface GenerateStoryInput {
   knownVocab: KnownVocabWord[];
   targetLanguage: string;   // ISO 639-1, e.g. "de"
   sourceLanguage: string;   // ISO 639-1, e.g. "en"
+  userProfile?: UserProfile;
 }
 
 export interface GenerateStoryOutput {
@@ -39,7 +46,23 @@ Rules you must follow without exception:
 4. Each target word must appear exactly once in the story as a blank.
 5. If the ALLOWED VOCABULARY list has fewer than 15 words, write the story entirely in the SOURCE language instead, but still insert the blanks in the same ___ [conjugated-form] (source-translation) format — the blank is always the target-language word the student must type.
 6. Output only the story text. No headers, labels, commentary, or explanation.
-7. The story should be coherent and the correct word for each blank should be reasonably inferable from context.`;
+7. The story should be coherent and the correct word for each blank should be reasonably inferable from context.
+8. If a STUDENT PROFILE is provided, tailor the story accordingly:
+   - Match the complexity and vocabulary level to the student's age (younger = simpler sentences, older = more nuanced).
+   - The main character(s) should resemble the student (similar age, gender if known).
+   - Choose a setting or theme from the student's listed interests when possible.
+   - If no profile is provided, write a generic engaging story suitable for a general adult learner.`;
+
+function buildProfileSection(profile?: UserProfile): string {
+  if (!profile || (!profile.age && !profile.gender && !profile.interests)) return '';
+
+  const lines: string[] = [];
+  if (profile.age)       lines.push(`- Age: ${profile.age}`);
+  if (profile.gender && profile.gender !== 'other') lines.push(`- Gender: ${profile.gender}`);
+  if (profile.interests) lines.push(`- Interests: ${profile.interests}`);
+
+  return `\nSTUDENT PROFILE:\n${lines.join('\n')}\n`;
+}
 
 function buildUserPrompt(input: GenerateStoryInput): string {
   const targetLang = languageName(input.targetLanguage);
@@ -55,9 +78,11 @@ function buildUserPrompt(input: GenerateStoryInput): string {
     .map((w) => w.lemma)
     .join(', ');
 
+  const profileSection = buildProfileSection(input.userProfile);
+
   return `TARGET LANGUAGE: ${targetLang}
 SOURCE LANGUAGE: ${sourceLang}
-
+${profileSection}
 TARGET WORDS (these become blanks in the story):
 ${targetWordLines}
 
